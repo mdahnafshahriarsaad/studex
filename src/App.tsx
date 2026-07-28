@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useUserStore } from './hooks/useUserStore';
 import { SplashScreen } from './pages/SplashScreen';
 import { WelcomeScreen } from './pages/WelcomeScreen';
