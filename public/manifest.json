@@ -1,0 +1,25 @@
+{
+  "short_name": "Studex",
+  "name": "Studex - Smart Academic Planner",
+  "icons": [
+    {
+      "src": "/pwa-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "description": "Smart Academic Planner & Study Engine for Students",
+  "categories": ["education", "productivity"]
+}

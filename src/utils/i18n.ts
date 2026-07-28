@@ -1,0 +1,173 @@
+export type Language = 'English' | 'Bengali';
+
+export const translations: Record<Language, Record<string, string>> = {
+  English: {
+    // Nav Items
+    'nav.dashboard': 'Dashboard',
+    'nav.todaysTarget': "Today's Target",
+    'nav.completeSyllabus': 'Complete Syllabus',
+    'nav.downloadApp': 'Download App',
+    'nav.subjects': 'Subjects',
+    'nav.progress': 'Progress & Revisions',
+    'nav.focus': 'Focus Mode',
+    'nav.guardian': 'Guardian Portal',
+    'nav.profile': 'Profile',
+    'nav.settings': 'Settings',
+    'nav.about': 'About Studex',
+
+    // Header & General
+    'header.academicWorkspace': 'Academic Workspace',
+    'header.streak': 'Streak',
+    'header.signIn': 'Sign In / Sync',
+    'header.signOut': 'Sign Out',
+
+    // Dashboard Page
+    'dashboard.welcomeBack': 'Welcome back',
+    'dashboard.subheading': 'Your personalized AI daily study target and syllabus tracker.',
+    'dashboard.todaysTarget': "Today's Target",
+    'dashboard.pagesToRead': 'Pages to Read Today',
+    'dashboard.completedPages': 'Completed Pages',
+    'dashboard.progress': 'Target Progress',
+    'dashboard.weeklyStreak': 'Current Streak',
+    'dashboard.examCountdown': 'Exam Countdown',
+    'dashboard.daysRemaining': 'days left',
+    'dashboard.prioritySubjects': 'Priority Subjects Today',
+    'dashboard.noSubjects': 'No subjects added yet. Add subjects to start tracking.',
+    'dashboard.addSubject': 'Add New Subject',
+    'dashboard.viewAll': 'View All',
+    'dashboard.startFocus': 'Start Focus Session',
+    'dashboard.completeChapter': 'Mark Completed',
+    'dashboard.completed': 'Completed',
+    'dashboard.missedRecoveryTitle': 'Missed Target Recovery',
+    'dashboard.revisionsDue': 'Revisions Due Today',
+
+    // Settings Page
+    'settings.title': 'App Settings',
+    'settings.subheading': 'Configure theme styles, Liquid Glass performance mode, notifications, and language.',
+    'settings.themeTitle': 'Theme System',
+    'settings.themeDesc': 'Select your preferred Apple Liquid Glass appearance',
+    'settings.performanceTitle': 'Performance & Glass Engine',
+    'settings.performanceDesc': 'Optimize Liquid Glass blur effects for low-end phones',
+    'settings.highQuality': 'High Quality Mode',
+    'settings.performanceMode': 'Performance Mode',
+    'settings.animationTitle': 'Animation Mode',
+    'settings.animationDesc': 'Balanced is default for optimal 60 FPS motion',
+    'settings.notificationsTitle': 'Smart Notifications',
+    'settings.notificationsDesc': 'Timely reminders without notification spam',
+    'settings.languageTitle': 'Interface Language',
+    'settings.languageDesc': 'Select language for interface labels',
+    'settings.aboutTitle': 'About Studex',
+    'settings.resetSetup': 'Re-run Setup Wizard',
+    'settings.resetDesc': 'Reset your profile setup to re-configure subjects & targets',
+
+    // Subjects Page
+    'subjects.title': 'Academic Subjects',
+    'subjects.subtitle': 'Manage your subjects, chapters, page ranges, and difficulty ratings.',
+    'subjects.addSubjectBtn': 'Add Subject',
+    'subjects.newSubjectPlaceholder': 'Enter subject name (e.g. Physics)',
+    'subjects.addChapterBtn': 'Add Chapter',
+    'subjects.chapterNamePlaceholder': 'Chapter Title',
+    'subjects.startPage': 'Start Page',
+    'subjects.endPage': 'End Page',
+    'subjects.difficulty': 'Difficulty',
+    'subjects.easy': 'Easy',
+    'subjects.medium': 'Medium',
+    'subjects.hard': 'Hard',
+
+    // Common Buttons
+    'btn.save': 'Save Changes',
+    'btn.cancel': 'Cancel',
+    'btn.delete': 'Delete',
+    'btn.edit': 'Edit',
+    'btn.close': 'Close',
+    'btn.submit': 'Submit',
+    'btn.confirm': 'Confirm',
+  },
+  Bengali: {
+    // Nav Items
+    'nav.dashboard': 'ড্যাশবোর্ড',
+    'nav.todaysTarget': 'আজকের লক্ষ্য',
+    'nav.completeSyllabus': 'সম্পূর্ণ সিলেবাস',
+    'nav.downloadApp': 'অ্যাপ ডাউনলোড',
+    'nav.subjects': 'বিষয়সমূহ',
+    'nav.progress': 'অগ্রগতি ও রিভিশন',
+    'nav.focus': 'ফোকাস মোড',
+    'nav.guardian': 'অভিভাবক পোর্টাল',
+    'nav.profile': 'প্রোফাইল',
+    'nav.settings': 'সেটিংস',
+    'nav.about': 'স্টাডেক্স সম্পর্কে',
+
+    // Header & General
+    'header.academicWorkspace': 'একাডেমিক ওয়ার্কস্পেস',
+    'header.streak': 'স্ট্রিক',
+    'header.signIn': 'সাইন ইন / সিঙ্ক',
+    'header.signOut': 'সাইন আউট',
+
+    // Dashboard Page
+    'dashboard.welcomeBack': 'স্বাগতম',
+    'dashboard.subheading': 'আপনার পারসোনালাইজড কৃত্রিম বুদ্ধিমত্তা চালিত পড়া ও সিলেবাস ট্র্যাকার।',
+    'dashboard.todaysTarget': 'আজকের লক্ষ্য',
+    'dashboard.pagesToRead': 'আজ পড়ার টার্গেট (পৃষ্ঠা)',
+    'dashboard.completedPages': 'পঠিত পৃষ্ঠা',
+    'dashboard.progress': 'লক্ষ্য অগ্রগতি',
+    'dashboard.weeklyStreak': 'চলতি স্ট্রিক',
+    'dashboard.examCountdown': 'পরীক্ষার কাউন্টডাউন',
+    'dashboard.daysRemaining': 'দিন বাকি',
+    'dashboard.prioritySubjects': 'আজকের অগ্রাধিকার বিষয়সমূহ',
+    'dashboard.noSubjects': 'কোনো বিষয় যুক্ত করা হয়নি। শুরু করতে নতুন বিষয় যুক্ত করুন।',
+    'dashboard.addSubject': 'নতুন বিষয় যুক্ত করুন',
+    'dashboard.viewAll': 'সব দেখুন',
+    'dashboard.startFocus': 'পড়া শুরু করুন (ফোকাস)',
+    'dashboard.completeChapter': 'সম্পন্ন চিহ্নিত করুন',
+    'dashboard.completed': 'সম্পন্ন',
+    'dashboard.missedRecoveryTitle': 'অলক্ষিত পড়া রিকভারি প্ল্যান',
+    'dashboard.revisionsDue': 'আজকের রিভিশন',
+
+    // Settings Page
+    'settings.title': 'অ্যাপ সেটিংস',
+    'settings.subheading': 'থিম, লিকুইড গ্লাস পারফর্মার, নোটিফিকেশন এবং ভাষা নির্বাচন করুন।',
+    'settings.themeTitle': 'থিম সিস্টেম',
+    'settings.themeDesc': 'আপনার পছন্দের অ্যাপল লিকুইড গ্লাস থিম বেছে নিন',
+    'settings.performanceTitle': 'পারফর্মার ও গ্লাস ইঞ্জিন',
+    'settings.performanceDesc': 'কম দামী ফোনের জন্য গ্লাস আবসা প্রভাব অপটিমাইজ করুন',
+    'settings.highQuality': 'হাই কোয়ালিটি মোড',
+    'settings.performanceMode': 'পারফরম্যান্স মোড (ফাস্ট)',
+    'settings.animationTitle': 'অ্যানিমেশন মোড',
+    'settings.animationDesc': 'স্মুথ অভিজ্ঞতার জন্য ব্যালান্সড মোড ডিফল্ট',
+    'settings.notificationsTitle': 'স্মার্ট নোটিফিকেশন',
+    'settings.notificationsDesc': 'উপযোগী রিমাইন্ডার এলার্ট',
+    'settings.languageTitle': 'ইন্টারফেস ভাষা',
+    'settings.languageDesc': 'অ্যাপের ভাষার জন্য অপশন নির্বাচন করুন',
+    'settings.aboutTitle': 'স্টাডেক্স পরিচিতি',
+    'settings.resetSetup': 'পুনরায় সেটআপ রান করুন',
+    'settings.resetDesc': 'বিষয় এবং টার্গেট নতুন করে সাজাতে রিসেট করুন',
+
+    // Subjects Page
+    'subjects.title': 'একাডেমিক বিষয়সমূহ',
+    'subjects.subtitle': 'আপনার বিষয়, অধ্যায়, পৃষ্ঠা সীমা এবং কঠিনতা নির্ধারণ করুন।',
+    'subjects.addSubjectBtn': 'বিষয় যুক্ত করুন',
+    'subjects.newSubjectPlaceholder': 'বিষয় লিখুন (যেমন: পদার্থবিজ্ঞান)',
+    'subjects.addChapterBtn': 'অধ্যায় যুক্ত করুন',
+    'subjects.chapterNamePlaceholder': 'অধ্যায়ের নাম',
+    'subjects.startPage': 'শুরু পৃষ্ঠা',
+    'subjects.endPage': 'শেষ পৃষ্ঠা',
+    'subjects.difficulty': 'কঠিনতা',
+    'subjects.easy': 'সহজ',
+    'subjects.medium': 'মাঝারি',
+    'subjects.hard': 'কঠিন',
+
+    // Common Buttons
+    'btn.save': 'সংরক্ষণ করুন',
+    'btn.cancel': 'বাতিল',
+    'btn.delete': 'মুছে ফেলুন',
+    'btn.edit': 'সম্পাদনা',
+    'btn.close': 'বন্ধ করুন',
+    'btn.submit': 'জমা দিন',
+    'btn.confirm': 'নিশ্চিত করুন',
+  },
+};
+
+export function t(key: string, lang: Language = 'English'): string {
+  const dict = translations[lang] || translations.English;
+  return dict[key] || translations.English[key] || key;
+}
