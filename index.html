@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Studex" />
-    <link rel="manifest" href="./manifest.json" />
+    <link rel="manifest" href="manifest.json" />
 
     <!-- Google Fonts Inter & Hind Siliguri / Noto Sans Bengali -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,12 +22,12 @@
   </head>
   <body class="bg-black text-white antialiased overflow-x-hidden selection:bg-electric-500 selection:text-black">
     <div id="root"></div>
-    <script type="module" src="./src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
     <script>
       // Register Service Worker for PWA support
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
+          navigator.serviceWorker.register('sw.js')
             .then(reg => console.log('Studex PWA SW registered:', reg.scope))
             .catch(err => console.log('Studex PWA SW registration failed:', err));
         });
