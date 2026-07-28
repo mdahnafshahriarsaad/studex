@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" width="1000" height="300">
+  <defs>
+    <!-- Metallic White Gradient -->
+    <linearGradient id="wmMetallic" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="40%" stop-color="#F1F5F9"/>
+      <stop offset="75%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+
+    <!-- Electric Blue Gradient -->
+    <linearGradient id="wmElectric" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="50%" stop-color="#007AFF"/>
+      <stop offset="100%" stop-color="#7000FF"/>
+    </linearGradient>
+
+    <!-- Soft Cyan Glow Filter -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="1000" height="300" fill="#000000"/>
+
+  <g transform="translate(60, 50)">
+    
+    <!-- Letter 's' -->
+    <path d="M 100 170 C 90 120, 160 120, 160 135 C 160 150, 90 160, 90 185 C 90 210, 160 210, 160 195" 
+          fill="none" stroke="url(#wmMetallic)" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- Letter 't' -->
+    <path d="M 230 90 L 230 200 M 205 135 L 255 135" 
+          stroke="url(#wmMetallic)" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- Letter 'u' (Transformed into Open Book Frame + Glowing Blue Page Lines) -->
+    <!-- Outer U Frame -->
+    <path d="M 305 125 L 305 180 Q 355 215 405 180 L 405 125" 
+          fill="none" stroke="url(#wmMetallic)" stroke-width="20" stroke-linecap="round"/>
+    
+    <!-- Inner Glowing Blue Book Pages -->
+    <g filter="url(#softGlow)">
+      <path d="M 325 170 Q 355 155 385 170 M 325 155 Q 355 140 385 155 M 355 145 L 355 175" 
+            fill="none" stroke="#00F0FF" stroke-width="6" stroke-linecap="round"/>
+    </g>
+
+    <!-- Letter 'd' -->
+    <path d="M 505 90 L 505 200 M 505 135 C 445 135, 445 200, 505 200" 
+          fill="none" stroke="url(#wmMetallic)" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- Letter 'e' -->
+    <path d="M 610 170 L 555 170 C 555 135, 610 135, 610 170 C 610 205, 555 205, 555 185" 
+          fill="none" stroke="url(#wmMetallic)" stroke-width="20" stroke-linecap="round"/>
+
+    <!-- Letter 'x' (Transformed into Dynamic Forward Speed Stroke & Cyan Particle Tip) -->
+    <!-- Downward Stroke -->
+    <path d="M 660 135 L 725 200" 
+          stroke="url(#wmMetallic)" stroke-width="20" stroke-linecap="round"/>
+          
+    <!-- Dynamic Electric Blue Upward Speed Stroke -->
+    <path d="M 650 215 L 760 95" 
+          stroke="url(#wmElectric)" stroke-width="20" stroke-linecap="round" filter="url(#softGlow)"/>
+          
+    <!-- Cyan Particle Tip at Top Right -->
+    <circle cx="775" cy="80" r="12" fill="#00F0FF" filter="url(#softGlow)"/>
+
+  </g>
+</svg>

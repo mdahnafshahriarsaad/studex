@@ -2,16 +2,16 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Studex - Smart Academic Planner & Study Engine. Plan smarter. Study better. Achieve more." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Studex" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="./manifest.json" />
 
     <!-- Google Fonts Inter & Hind Siliguri / Noto Sans Bengali -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,16 +19,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <title>STUDEX | Academic Planner</title>
-    <script type="module" crossorigin src="/assets/index-DTsf2ui4.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BIpgOS5T.css">
   </head>
   <body class="bg-black text-white antialiased overflow-x-hidden selection:bg-electric-500 selection:text-black">
     <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
     <script>
-      // Register Service Worker for PWA support
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('Studex PWA SW registered:', reg.scope))
             .catch(err => console.log('Studex PWA SW registration failed:', err));
         });

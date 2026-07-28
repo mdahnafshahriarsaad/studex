@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <rect width="800" height="800" fill="#050B14"/>
+
+  <!-- Construction Grid Lines -->
+  <g stroke="rgba(0, 240, 255, 0.15)" stroke-width="1" stroke-dasharray="4 4">
+    <!-- Vertical Grid Lines -->
+    <line x1="100" y1="0" x2="100" y2="800"/>
+    <line x1="200" y1="0" x2="200" y2="800"/>
+    <line x1="300" y1="0" x2="300" y2="800"/>
+    <line x1="400" y1="0" x2="400" y2="800"/>
+    <line x1="500" y1="0" x2="500" y2="800"/>
+    <line x1="600" y1="0" x2="600" y2="800"/>
+    <line x1="700" y1="0" x2="700" y2="800"/>
+
+    <!-- Horizontal Grid Lines -->
+    <line x1="0" y1="100" x2="800" y2="100"/>
+    <line x1="0" y1="200" x2="800" y2="200"/>
+    <line x1="0" y1="300" x2="800" y2="300"/>
+    <line x1="0" y1="400" x2="800" y2="400"/>
+    <line x1="0" y1="500" x2="800" y2="500"/>
+    <line x1="0" y1="600" x2="800" y2="600"/>
+    <line x1="0" y1="700" x2="800" y2="700"/>
+
+    <!-- Concentric Golden Ratio Construction Circles -->
+    <circle cx="400" cy="400" r="300" stroke="#007AFF" stroke-width="1.5"/>
+    <circle cx="400" cy="400" r="220" stroke="#00F0FF" stroke-width="1"/>
+    <circle cx="400" cy="400" r="140" stroke="#007AFF" stroke-width="1"/>
+    <circle cx="440" cy="180" r="80" stroke="#30D158" stroke-width="1.5"/>
+  </g>
+
+  <!-- Safe Area Bounds Overlay -->
+  <rect x="100" y="100" width="600" height="600" fill="none" stroke="#FF9F0A" stroke-width="2" stroke-dasharray="8 8"/>
+  <text x="110" y="125" fill="#FF9F0A" font-size="12" font-family="monospace" font-weight="bold">SAFE AREA BOUNDARY (1X CLEARANCE)</text>
+
+  <!-- Overlayed Emblem -->
+  <g transform="translate(40, 20)" opacity="0.85">
+    <path d="M 280 500 Q 200 420 290 350 L 410 280 Q 500 210 420 140" fill="none" stroke="#007AFF" stroke-width="48" stroke-linecap="round"/>
+    <path d="M 240 540 C 160 440, 310 390, 430 320 C 510 270, 480 150, 370 160" fill="none" stroke="#FFFFFF" stroke-width="36" stroke-linecap="round"/>
+    <polygon points="370,160 450,80 420,115" fill="#FFFFFF"/>
+    <circle cx="450" cy="80" r="10" fill="#00F0FF"/>
+  </g>
+</svg>
