@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <!-- Background Radial Ambient Glow -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#007AFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Specular Metallic White Ribbon Gradient -->
+    <linearGradient id="metallicWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="35%" stop-color="#F8FAFC"/>
+      <stop offset="65%" stop-color="#E2E8F0"/>
+      <stop offset="85%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+
+    <!-- Electric Blue Under-layer Gradient -->
+    <linearGradient id="electricBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F0FF"/>
+      <stop offset="50%" stop-color="#007AFF"/>
+      <stop offset="100%" stop-color="#0040DD"/>
+    </linearGradient>
+
+    <!-- Soft Cyan Glow Filter -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="sharpSpecular">
+      <feSpecularLighting surfaceScale="5" specularConstant="1" specularExponent="20" lighting-color="#ffffff">
+        <feDistantLight azimuth="45" elevation="60"/>
+      </feSpecularLighting>
+    </filter>
+  </defs>
+
+  <!-- Deep AMOLED Black Base -->
+  <rect width="800" height="800" fill="#000000"/>
+  <circle cx="400" cy="400" r="360" fill="url(#bgGlow)"/>
+
+  <!-- STUDEX Emblem Group -->
+  <g transform="translate(40, 20)">
+    
+    <!-- 1. Electric Blue Inner Sub-layer (Depth Shadow) -->
+    <path d="M 280 500 Q 200 420 290 350 L 410 280 Q 500 210 420 140" 
+          fill="none" stroke="url(#electricBlue)" stroke-width="64" stroke-linecap="round" filter="url(#softGlow)"/>
+
+    <!-- 2. Bottom Open Book Wings Curve (Subtle Book Motif) -->
+    <path d="M 260 520 Q 360 570 460 520 C 530 485, 480 400, 390 410" 
+          fill="none" stroke="url(#electricBlue)" stroke-width="40" stroke-linecap="round" opacity="0.85"/>
+
+    <!-- 3. Primary Metallic White S Ribbon Body -->
+    <path d="M 240 540 C 160 440, 310 390, 430 320 C 510 270, 480 150, 370 160" 
+          fill="none" stroke="url(#metallicWhite)" stroke-width="52" stroke-linecap="round"/>
+
+    <!-- 4. Fountain Pen Nib Extension Top Right -->
+    <!-- Nib Base & Taper -->
+    <polygon points="370,160 450,80 485,120" fill="url(#electricBlue)" filter="url(#softGlow)"/>
+    <polygon points="370,160 450,80 420,115" fill="url(#metallicWhite)"/>
+    
+    <!-- Pen Nib Slit & Breath Hole -->
+    <line x1="400" y1="135" x2="450" y2="80" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="410" cy="125" r="5" fill="#00F0FF" filter="url(#softGlow)"/>
+    
+    <!-- Glowing Cyan Particle Tip -->
+    <circle cx="450" cy="80" r="10" fill="#00F0FF" filter="url(#softGlow)"/>
+  </g>
+</svg>
