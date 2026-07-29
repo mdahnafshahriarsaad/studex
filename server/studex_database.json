@@ -1,0 +1,498 @@
+{
+  "users": {
+    "student@studex.edu": {
+      "id": "usr-demo-101",
+      "name": "Saad Rahman",
+      "email": "student@studex.edu",
+      "passwordHash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+      "isVerified": true,
+      "createdAt": "2026-07-28T12:41:30.110Z",
+      "lastLoginAt": "2026-07-28T12:41:30.110Z"
+    },
+    "dfsddfv@gmail.com": {
+      "id": "usr-1785242490111",
+      "name": "ANIS",
+      "email": "dfsddfv@gmail.com",
+      "passwordHash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+      "isVerified": true,
+      "verificationToken": "6a371a6dc3cc4635ed8083502eb24588cb026bfa36402b25",
+      "verificationOtp": "545897",
+      "createdAt": "2026-07-28T12:41:30.111Z",
+      "lastLoginAt": "2026-07-28T12:41:59.989Z"
+    }
+  },
+  "profiles": {
+    "student@studex.edu": {
+      "profile": {
+        "name": "Saad Rahman",
+        "avatar": "🎓",
+        "selectedClass": "Class 9",
+        "dailyStudyTime": "2 Hours",
+        "preferredStudyTime": "Evening",
+        "examInfo": {
+          "name": "Half Yearly Examination",
+          "date": "2026-08-27"
+        },
+        "subjects": [],
+        "revisions": [],
+        "missedTargetRecovery": null,
+        "gamification": {
+          "xp": 250,
+          "level": 2,
+          "levelTitle": "Scholar",
+          "currentStreak": 3,
+          "longestStreak": 5,
+          "totalStudyMinutes": 120,
+          "achievements": []
+        },
+        "studyHistory": [],
+        "guardian": {
+          "enabled": true,
+          "passcode": "8899",
+          "dailyReportEnabled": true
+        },
+        "setupCompleted": true,
+        "createdAt": "2026-07-28T12:41:30.110Z"
+      },
+      "settings": {
+        "theme": "AMOLED Dark",
+        "animationMode": "Balanced",
+        "performanceMode": "High Quality",
+        "notifications": {
+          "studyReminder": true,
+          "examReminder": true,
+          "guardianReport": true
+        },
+        "language": "English"
+      }
+    },
+    "dfsddfv@gmail.com": {
+      "profile": {
+        "name": "ANIS",
+        "avatar": "🎓",
+        "selectedClass": "Class 9",
+        "dailyStudyTime": "2 Hours",
+        "preferredStudyTime": "Evening",
+        "examInfo": {
+          "name": "Half Yearly Examination",
+          "date": "2026-08-27"
+        },
+        "subjects": [
+          {
+            "id": "subj-1-bangla1st",
+            "name": "Bangla 1st",
+            "order": 1,
+            "chapters": [
+              {
+                "id": "ch-1-bangla1st",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-bangla1st",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-2-bangla2nd",
+            "name": "Bangla 2nd",
+            "order": 2,
+            "chapters": [
+              {
+                "id": "ch-1-bangla2nd",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-bangla2nd",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-3-english1st",
+            "name": "English 1st",
+            "order": 3,
+            "chapters": [
+              {
+                "id": "ch-1-english1st",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-english1st",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-4-english2nd",
+            "name": "English 2nd",
+            "order": 4,
+            "chapters": [
+              {
+                "id": "ch-1-english2nd",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-english2nd",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-5-mathematics",
+            "name": "Mathematics",
+            "order": 5,
+            "chapters": [
+              {
+                "id": "ch-1-mathematics",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-mathematics",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-6-physics",
+            "name": "Physics",
+            "order": 6,
+            "chapters": [
+              {
+                "id": "ch-1-physics",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-physics",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-7-chemistry",
+            "name": "Chemistry",
+            "order": 7,
+            "chapters": [
+              {
+                "id": "ch-1-chemistry",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-chemistry",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-8-biology",
+            "name": "Biology",
+            "order": 8,
+            "chapters": [
+              {
+                "id": "ch-1-biology",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-biology",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-9-highermathematics",
+            "name": "Higher Mathematics",
+            "order": 9,
+            "chapters": [
+              {
+                "id": "ch-1-highermathematics",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-highermathematics",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-10-religion",
+            "name": "Religion",
+            "order": 10,
+            "chapters": [
+              {
+                "id": "ch-1-religion",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-religion",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          },
+          {
+            "id": "subj-11-bgs",
+            "name": "BGS",
+            "order": 11,
+            "chapters": [
+              {
+                "id": "ch-1-bgs",
+                "name": "Fundamentals & Concepts",
+                "startPage": 1,
+                "endPage": 12,
+                "totalPages": 12,
+                "difficulty": "Easy",
+                "completed": false
+              },
+              {
+                "id": "ch-2-bgs",
+                "name": "Advanced Dynamics",
+                "startPage": 13,
+                "endPage": 28,
+                "totalPages": 16,
+                "difficulty": "Medium",
+                "completed": false
+              }
+            ],
+            "totalChapters": 2,
+            "completedChapters": 0,
+            "totalPages": 28,
+            "completedPages": 0,
+            "remainingPages": 28,
+            "progressPercent": 0
+          }
+        ],
+        "revisions": [],
+        "missedTargetRecovery": null,
+        "gamification": {
+          "xp": 150,
+          "level": 1,
+          "levelTitle": "Beginner",
+          "currentStreak": 1,
+          "longestStreak": 1,
+          "lastStudyDate": "2026-07-28",
+          "totalStudyMinutes": 45,
+          "achievements": [
+            {
+              "id": "first_session",
+              "title": "First Study Session",
+              "description": "Complete your first focus session",
+              "icon": "🚀",
+              "unlocked": false
+            },
+            {
+              "id": "chapter_finish",
+              "title": "Chapter Master",
+              "description": "Complete your first syllabus chapter",
+              "icon": "📚",
+              "unlocked": false
+            },
+            {
+              "id": "focus_master",
+              "title": "Focus Master",
+              "description": "Complete 5 full focus study sessions",
+              "icon": "⚡",
+              "unlocked": false
+            },
+            {
+              "id": "streak_7",
+              "title": "7-Day Streak",
+              "description": "Maintain a continuous 7-day study streak",
+              "icon": "🔥",
+              "unlocked": false
+            },
+            {
+              "id": "syllabus_hero",
+              "title": "Syllabus Hero",
+              "description": "100% complete a subject syllabus",
+              "icon": "🏆",
+              "unlocked": false
+            }
+          ]
+        },
+        "studyHistory": [],
+        "guardian": {
+          "enabled": false,
+          "passcode": "STX-GUARD-6444",
+          "dailyReportEnabled": true
+        },
+        "setupCompleted": true,
+        "createdAt": "2026-07-28T12:40:50.495Z"
+      },
+      "settings": {
+        "theme": "AMOLED Dark",
+        "animationMode": "Balanced",
+        "performanceMode": "High Quality",
+        "notifications": {
+          "studyReminder": true,
+          "examReminder": true,
+          "guardianReport": true
+        },
+        "language": "English"
+      }
+    }
+  },
+  "guardianCodes": {
+    "1682": "dfsddfv@gmail.com",
+    "8899": "dfsddfv@gmail.com",
+    "STX-GUARD-6444": "dfsddfv@gmail.com"
+  }
+}

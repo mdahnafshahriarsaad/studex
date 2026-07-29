@@ -87,13 +87,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             initial={{ opacity: 0, scale: 0.88, filter: 'blur(8px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="relative mb-6 flex flex-col items-center"
+            className="relative mb-8 flex flex-col items-center"
           >
-            <div className="relative overflow-hidden p-2 rounded-3xl">
+            <div className="relative overflow-hidden p-4 rounded-3xl">
               <img
                 src="/logo-mark.png"
                 alt="Official Studex Logo Mark"
-                className="w-28 h-28 md:w-36 md:h-36 object-contain filter drop-shadow-[0_0_20px_rgba(0,240,255,0.4)]"
+                className="w-56 h-56 md:w-72 md:h-72 object-contain filter drop-shadow-[0_0_40px_rgba(0,240,255,0.75)]"
               />
 
               {/* Metallic Light Reflection Sweep (Stage 4) */}
@@ -120,9 +120,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             <img
               src="/wordmark.png"
               alt="Official Studex Wordmark"
-              className="h-9 md:h-11 object-contain filter drop-shadow-[0_0_12px_rgba(0,240,255,0.3)]"
+              className="h-20 md:h-28 object-contain filter drop-shadow-[0_0_24px_rgba(0,240,255,0.5)]"
             />
-            <p className="text-[11px] tracking-[0.25em] text-neutral-500 font-light uppercase mt-2.5">
+            <p className="text-[13px] tracking-[0.35em] text-neutral-300 font-extrabold uppercase mt-4">
               Academic Planner
             </p>
           </motion.div>

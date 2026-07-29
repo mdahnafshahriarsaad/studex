@@ -17,6 +17,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AboutPage } from './pages/AboutPage';
 import { AuthModal } from './pages/AuthModal';
+import { CalendarPage } from './pages/CalendarPage';
 
 export const App: React.FC = () => {
   const {
@@ -63,14 +64,32 @@ export const App: React.FC = () => {
 
   if (!profile.setupCompleted) {
     if (inWelcomeFlow) {
-      return <WelcomeScreen onStartSetup={handleStartSetup} />;
+      return (
+        <>
+          {showAuthModal && (
+            <AuthModal
+              onSuccess={() => setShowAuthModal(false)}
+              onClose={() => setShowAuthModal(false)}
+            />
+          )}
+          <WelcomeScreen
+            onStartSetup={handleStartSetup}
+            onOpenAuthModal={() => setShowAuthModal(true)}
+          />
+        </>
+      );
     }
     return <SetupWizard initialProfile={profile} onComplete={handleWizardComplete} />;
   }
 
   return (
     <Router>
-      {showAuthModal && <AuthModal onSuccess={() => setShowAuthModal(false)} />}
+      {showAuthModal && (
+        <AuthModal
+          onSuccess={() => setShowAuthModal(false)}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
 
       <Routes>
         <Route
@@ -156,6 +175,7 @@ export const App: React.FC = () => {
             }
           />
           <Route path="about" element={<AboutPage />} />
+          <Route path="calendar" element={<CalendarPage />} />
         </Route>
 
         {/* Fullscreen Focus Mode (Outside MainLayout) */}

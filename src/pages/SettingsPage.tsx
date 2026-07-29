@@ -5,10 +5,11 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { requestNotificationPermission } from '../services/notificationService';
+import { getCurrentUserAccount, logoutAccount } from '../services/authService';
 import {
-  Settings, Sliders, Globe, Info, RotateCcw, Smartphone, Moon, Cpu, Bell, ShieldCheck, Check, Sparkles, Zap
+  Settings, Sliders, Globe, Info, RotateCcw, Smartphone, Moon, Cpu, Bell, ShieldCheck, Check, Sparkles, Zap, Mail, Lock, LogOut
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 
 interface SettingsPageProps {
   settings: AppSettings;
@@ -292,7 +293,60 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         </div>
       </GlassCard>
 
-      {/* 6. App & Developer Info */}
+      {/* 6. Email Account & Cloud Sync Settings */}
+      {(() => {
+        const currentAcc = getCurrentUserAccount();
+        const { onOpenAuthModal } = (useOutletContext() || {}) as { onOpenAuthModal?: () => void };
+
+        return (
+          <GlassCard className="border-electric-500/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-electric-500/15 border border-electric-500/30 flex items-center justify-center text-electric-400">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Email Account & Cloud Sync</h3>
+                  <p className="text-xs text-neutral-400">
+                    {currentAcc
+                      ? `Signed in as ${currentAcc.email}`
+                      : 'Sign in to automatically back up and sync syllabus progress'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                {currentAcc ? (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon={<LogOut className="w-4 h-4" />}
+                    onClick={() => {
+                      if (confirm('Sign out of your email account?')) {
+                        logoutAccount();
+                        window.location.reload();
+                      }
+                    }}
+                  >
+                    Sign Out ({currentAcc.email.split('@')[0]})
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={<Lock className="w-4 h-4" />}
+                    onClick={() => onOpenAuthModal && onOpenAuthModal()}
+                  >
+                    Email Login / Register
+                  </Button>
+                )}
+              </div>
+            </div>
+          </GlassCard>
+        );
+      })()}
+
+      {/* 7. App & Developer Info */}
       <GlassCard>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">

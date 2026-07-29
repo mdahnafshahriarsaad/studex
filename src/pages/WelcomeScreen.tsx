@@ -6,9 +6,10 @@ import { APP_INFO } from '../utils/constants';
 
 interface WelcomeScreenProps {
   onStartSetup: () => void;
+  onOpenAuthModal?: () => void;
 }
 
-export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartSetup }) => {
+export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartSetup, onOpenAuthModal }) => {
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-6 relative overflow-hidden select-none">
       {/* Ambient background glow */}
@@ -19,13 +20,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartSetup }) =>
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-md flex items-center justify-between pt-4 z-10"
+        className="w-full max-w-xl flex items-center justify-between pt-4 z-10"
       >
-        <div className="flex items-center gap-2">
-          <img src="/logo-mark.png" alt="Studex" className="w-8 h-8 object-contain filter drop-shadow-[0_0_10px_rgba(0,240,255,0.4)]" />
-          <img src="/wordmark.png" alt="Studex" className="h-5 object-contain" />
+        <div className="flex items-center gap-4">
+          <img src="/logo-mark.png" alt="Studex" className="w-24 h-24 md:w-28 md:h-28 object-contain filter drop-shadow-[0_0_32px_rgba(0,240,255,0.85)]" />
+          <img src="/wordmark.png" alt="Studex" className="h-20 md:h-24 object-contain" />
         </div>
-        <span className="text-xs text-neutral-500 font-medium px-3 py-1 rounded-full glass-panel border border-white/10">
+        <span className="text-xs text-neutral-400 font-bold px-3.5 py-1.5 rounded-full glass-panel border border-white/10">
           v{APP_INFO.version}
         </span>
       </motion.div>
@@ -61,11 +62,22 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartSetup }) =>
           >
             Start Setup
           </Button>
+
+          {onOpenAuthModal && (
+            <Button
+              variant="glass"
+              size="lg"
+              fullWidth
+              onClick={onOpenAuthModal}
+            >
+              Email Login / Existing Account
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center justify-center gap-2 mt-6 text-xs text-neutral-500">
           <ShieldCheck className="w-4 h-4 text-electric-400" />
-          <span>Local setup &bull; No account required</span>
+          <span>Local setup &bull; Cloud sync with Email Login</span>
         </div>
       </motion.div>
 

@@ -29,7 +29,7 @@ export const AboutPage: React.FC = () => {
             <img
               src="/logo-mark.png"
               alt="Studex Logo"
-              className="w-24 h-24 object-contain filter drop-shadow-[0_0_20px_rgba(0,240,255,0.5)]"
+              className="w-48 h-48 object-contain filter drop-shadow-[0_0_35px_rgba(0,240,255,0.75)]"
             />
             <div className="absolute -bottom-2 -right-2">
               <Badge variant="electric">v{APP_INFO.version}</Badge>
@@ -37,8 +37,8 @@ export const AboutPage: React.FC = () => {
           </div>
 
           <div>
-            <img src="/wordmark.png" alt="Studex Wordmark" className="h-10 object-contain mx-auto" />
-            <p className="text-sm text-neutral-400 mt-2">{APP_INFO.tagline}</p>
+            <img src="/wordmark.png" alt="Studex Wordmark" className="h-20 object-contain mx-auto" />
+            <p className="text-base text-neutral-300 font-semibold mt-3">{APP_INFO.tagline}</p>
           </div>
 
           <div className="w-full h-[1px] bg-white/10 my-4" />

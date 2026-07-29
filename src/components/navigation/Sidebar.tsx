@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Target, Compass, Play, BookOpen, BarChart2, User, ShieldCheck, Smartphone, Settings, Info } from 'lucide-react';
+import { Home, Target, Compass, Play, BookOpen, BarChart2, User, ShieldCheck, Smartphone, Settings, Info, CalendarDays } from 'lucide-react';
 import { APP_INFO } from '../../utils/constants';
 import { AppSettings } from '../../types';
 import { t } from '../../utils/i18n';
@@ -15,6 +15,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ settings }) => {
   const navItems = [
     { path: '/dashboard', label: t('nav.dashboard', lang), icon: Home },
     { path: '/todays-target', label: t('nav.todaysTarget', lang), icon: Target },
+    { path: '/calendar', label: 'Study Calendar', icon: CalendarDays },
     { path: '/complete-syllabus', label: t('nav.completeSyllabus', lang), icon: Compass },
     { path: '/focus', label: t('nav.focus', lang), icon: Play },
     { path: '/subjects', label: t('nav.subjects', lang), icon: BookOpen },
@@ -26,17 +27,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ settings }) => {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 bg-black/80 backdrop-blur-2xl border-r border-white/10 p-5 z-40 select-none">
+    <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-black/85 backdrop-blur-2xl border-r border-white/10 p-5 z-40 select-none">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-2 py-3 mb-4 border-b border-white/10">
+      <div className="flex flex-col items-center justify-center gap-3 px-2 py-4 mb-4 border-b border-white/10 text-center">
         <img
           src="/logo-mark.png"
           alt="Studex Logo"
-          className="w-10 h-10 object-contain filter drop-shadow-[0_0_12px_rgba(0,240,255,0.5)]"
+          className="w-28 h-28 md:w-32 md:h-32 object-contain filter drop-shadow-[0_0_32px_rgba(0,240,255,0.85)] hover:scale-105 transition-transform duration-300"
         />
-        <div className="flex flex-col">
-          <img src="/wordmark.png" alt="Studex" className="h-6 object-contain self-start" />
-          <span className="text-[10px] tracking-widest text-neutral-400 font-semibold uppercase mt-0.5">
+        <div className="flex flex-col items-center justify-center">
+          <img src="/wordmark.png" alt="Studex" className="h-20 md:h-24 object-contain" />
+          <span className="text-[11px] tracking-[0.25em] text-neutral-400 font-extrabold uppercase mt-1.5">
             {t('header.academicWorkspace', lang)}
           </span>
         </div>

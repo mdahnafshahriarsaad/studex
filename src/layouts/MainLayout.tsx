@@ -48,7 +48,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ profile, settings, onOpe
         <Header profile={profile} settings={settings} onOpenAuthModal={onOpenAuthModal} />
 
         <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-          <Outlet />
+          <Outlet context={{ onOpenAuthModal }} />
         </main>
       </div>
 

@@ -5,10 +5,11 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { calculateLevelFromXP } from '../services/gamificationService';
+import { getCurrentUserAccount, logoutAccount } from '../services/authService';
 import {
-  User, Award, Flame, BookOpen, Clock, Layers, Trophy, CheckCircle2, Shield, Settings as SettingsIcon
+  User, Award, Flame, BookOpen, Clock, Layers, Trophy, CheckCircle2, Shield, Settings as SettingsIcon, Mail, Lock, ShieldCheck, LogOut
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 
 interface ProfilePageProps {
   profile: UserProfile;
@@ -118,6 +119,64 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
           <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Completed Chapters</span>
         </GlassCard>
       </div>
+
+      {/* EMAIL LOGIN & CLOUD ACCOUNT CARD */}
+      {(() => {
+        const currentAcc = getCurrentUserAccount();
+        const { onOpenAuthModal } = (useOutletContext() || {}) as { onOpenAuthModal?: () => void };
+
+        return (
+          <GlassCard className="border-electric-500/30">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-electric-500/15 border border-electric-500/30 flex items-center justify-center text-electric-400">
+                  <Mail className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-white text-base">Email Account & Cloud Sync</h3>
+                    {currentAcc ? (
+                      <Badge variant="electric">Verified Email</Badge>
+                    ) : (
+                      <Badge variant="neutral">Local Offline Profile</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    {currentAcc
+                      ? `Signed in as ${currentAcc.email} &bull; Cross-device sync active`
+                      : 'Sign in with an email account to enable multi-device sync'}
+                  </p>
+                </div>
+              </div>
+
+              {currentAcc ? (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  icon={<LogOut className="w-4 h-4" />}
+                  onClick={() => {
+                    if (confirm('Sign out of your email account?')) {
+                      logoutAccount();
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  Sign Out ({currentAcc.email.split('@')[0]})
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="md"
+                  icon={<Lock className="w-4 h-4" />}
+                  onClick={() => onOpenAuthModal && onOpenAuthModal()}
+                >
+                  Email Login / Sign Up
+                </Button>
+              )}
+            </div>
+          </GlassCard>
+        );
+      })()}
 
       {/* ACHIEVEMENTS GALLERY */}
       <GlassCard>

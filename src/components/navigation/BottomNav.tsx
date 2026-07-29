@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Target, Compass, Play, BookOpen, BarChart2, ShieldCheck, Smartphone, Settings } from 'lucide-react';
+import { Home, Target, Compass, Play, BookOpen, BarChart2, ShieldCheck, Smartphone, Settings, CalendarDays } from 'lucide-react';
 import { AppSettings } from '../../types';
 import { t } from '../../utils/i18n';
 
@@ -14,6 +14,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ settings }) => {
   const navItems = [
     { path: '/dashboard', label: t('nav.dashboard', lang), icon: Home },
     { path: '/todays-target', label: t('nav.todaysTarget', lang), icon: Target },
+    { path: '/calendar', label: 'Calendar', icon: CalendarDays },
     { path: '/complete-syllabus', label: t('nav.completeSyllabus', lang), icon: Compass },
     { path: '/focus', label: t('nav.focus', lang), icon: Play },
     { path: '/subjects', label: t('nav.subjects', lang), icon: BookOpen },

@@ -197,9 +197,10 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ initialProfile, onComp
       {/* Setup Top Progress Bar */}
       <div className="w-full max-w-2xl mb-6 flex flex-col gap-2 z-10">
         <div className="flex items-center justify-between text-xs text-neutral-400 font-medium px-1">
-          <span className="flex items-center gap-2">
-            <img src="/logo-mark.png" alt="Studex" className="w-5 h-5 object-contain" />
-            Step {step} of 7
+          <span className="flex items-center gap-2.5">
+            <img src="/logo-mark.png" alt="Studex" className="w-10 h-10 object-contain drop-shadow-[0_0_12px_rgba(0,240,255,0.6)]" />
+            <img src="/wordmark.png" alt="Studex" className="h-6 object-contain" />
+            <span className="ml-1 text-neutral-400 font-bold">Step {step} of 7</span>
           </span>
           <span className="text-electric-400 font-semibold">
             {step === 1 && 'Personal Profile'}

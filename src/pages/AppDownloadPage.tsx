@@ -70,12 +70,13 @@ export const AppDownloadPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center gap-3">
               <img
                 src="/logo-mark.png"
                 alt="Studex Official Icon"
-                className="w-16 h-16 object-contain drop-shadow-[0_0_20px_rgba(0,240,255,0.6)]"
+                className="w-40 h-40 object-contain filter drop-shadow-[0_0_40px_rgba(0,240,255,0.85)]"
               />
+              <img src="/wordmark.png" alt="Studex" className="h-20 object-contain" />
             </div>
           </div>
         </GlassCard>

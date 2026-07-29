@@ -4,10 +4,11 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { AuthMode, ClassLevel } from '../types';
 import { registerAccountAsync, loginAccountAsync, resetPasswordAsync, verifyEmailAsync } from '../services/authService';
-import { Mail, Lock, User, GraduationCap, ArrowRight, CheckCircle2, ShieldCheck, KeyRound, Sparkles, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Mail, Lock, User, GraduationCap, ArrowRight, CheckCircle2, ShieldCheck, KeyRound, Sparkles, AlertTriangle, ExternalLink, X } from 'lucide-react';
 
 interface AuthModalProps {
   onSuccess: () => void;
+  onClose?: () => void;
   initialMode?: AuthMode;
 }
 
@@ -16,7 +17,7 @@ const CLASS_OPTIONS: ClassLevel[] = [
   'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'
 ];
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, initialMode = 'login' }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initialMode = 'login' }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
 
   // Form State
@@ -130,9 +131,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, initialMode = '
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="w-full max-w-md"
       >
-        <GlassCard className="border-electric-500/30 bg-black/90 p-6 md:p-8 shadow-2xl relative overflow-hidden">
+        <GlassCard className="border-electric-500/30 bg-black/95 p-6 md:p-8 shadow-2xl relative overflow-hidden">
           {/* Top Glow & Watermark */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-electric-500/10 rounded-full blur-3xl pointer-events-none" />
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition z-20 border border-white/10"
+              title="Close modal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
           <img
             src="/watermark.png"
             alt=""
@@ -141,16 +151,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, initialMode = '
 
           {/* Header Branding */}
           <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="flex items-center justify-center gap-4 mb-3">
               <img
                 src="/logo-mark.png"
                 alt="Studex Logo"
-                className="w-10 h-10 object-contain drop-shadow-[0_0_12px_rgba(0,240,255,0.5)]"
+                className="w-24 h-24 md:w-28 md:h-28 object-contain filter drop-shadow-[0_0_32px_rgba(0,240,255,0.85)]"
               />
-              <img src="/wordmark.png" alt="Studex" className="h-6 object-contain" />
+              <img src="/wordmark.png" alt="Studex" className="h-20 md:h-24 object-contain" />
             </div>
             <p className="text-xs text-neutral-400 font-medium tracking-wide">
-              {mode === 'login' && 'Sign in to access your cloud study progress'}
+              {mode === 'login' && 'Sign in with your email account to access cloud study progress'}
               {mode === 'signup' && 'Create your Studex account for multi-device sync'}
               {mode === 'forgot-password' && 'Reset your Studex account password'}
             </p>
