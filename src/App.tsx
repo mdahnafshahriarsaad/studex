@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useUserStore } from './hooks/useUserStore';
 import { SplashScreen } from './pages/SplashScreen';
@@ -40,6 +40,15 @@ export const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState<boolean>(true);
   const [inWelcomeFlow, setInWelcomeFlow] = useState<boolean>(true);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+
+  // Auto-open AuthModal if URL contains a verifyToken (email verification link)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('verifyToken')) {
+      setShowSplash(false);
+      setShowAuthModal(true);
+    }
+  }, []);
 
   const handleSplashComplete = () => {
     setShowSplash(false);

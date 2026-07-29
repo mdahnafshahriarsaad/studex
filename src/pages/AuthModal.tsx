@@ -74,11 +74,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
           throw new Error('Password must be at least 6 characters long.');
         }
         const res = await registerAccountAsync(email, password, name, selectedClass);
-        setVerificationPending(true);
         if (res.verificationLink) {
+          // Real backend sent a verification email
+          setVerificationPending(true);
           setVerificationLink(res.verificationLink);
+          setSuccessMsg(res.message || 'Please verify your email before continuing.');
+        } else {
+          // Local/offline mode — no verification needed, go straight to login
+          setSuccessMsg(res.message || 'Account created! You can now sign in.');
+          setTimeout(() => {
+            setMode('login');
+            setSuccessMsg(null);
+          }, 1800);
         }
-        setSuccessMsg(res.message || 'Please verify your email before continuing.');
       } else if (mode === 'login') {
         if (!email.trim() || !password) {
           throw new Error('Please enter your email and password.');
@@ -157,7 +165,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
                 alt="Studex Logo"
                 className="w-24 h-24 md:w-28 md:h-28 object-contain filter drop-shadow-[0_0_32px_rgba(0,240,255,0.85)]"
               />
-              <img src="/wordmark.png" alt="Studex" className="h-20 md:h-24 object-contain" />
+              <img src="/wordmark.png" alt="Studex" className="h-16 md:h-18 object-contain" />
             </div>
             <p className="text-xs text-neutral-400 font-medium tracking-wide">
               {mode === 'login' && 'Sign in with your email account to access cloud study progress'}

@@ -24,7 +24,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStartSetup, onOp
       >
         <div className="flex items-center gap-4">
           <img src="/logo-mark.png" alt="Studex" className="w-24 h-24 md:w-28 md:h-28 object-contain filter drop-shadow-[0_0_32px_rgba(0,240,255,0.85)]" />
-          <img src="/wordmark.png" alt="Studex" className="h-20 md:h-24 object-contain" />
+          <img src="/wordmark.png" alt="Studex" className="h-16 md:h-18 object-contain" />
         </div>
         <span className="text-xs text-neutral-400 font-bold px-3.5 py-1.5 rounded-full glass-panel border border-white/10">
           v{APP_INFO.version}

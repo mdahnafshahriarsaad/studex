@@ -76,7 +76,7 @@ export const AppDownloadPage: React.FC = () => {
                 alt="Studex Official Icon"
                 className="w-40 h-40 object-contain filter drop-shadow-[0_0_40px_rgba(0,240,255,0.85)]"
               />
-              <img src="/wordmark.png" alt="Studex" className="h-20 object-contain" />
+              <img src="/wordmark.png" alt="Studex" className="h-16 object-contain" />
             </div>
           </div>
         </GlassCard>

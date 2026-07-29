@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ profile, settings, onOpenAuthMod
       <div className="flex items-center gap-3.5">
         <div className="flex items-center gap-3.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
           <img src="/logo-mark.png" alt="Studex" className="w-20 h-20 md:w-24 md:h-24 object-contain filter drop-shadow-[0_0_28px_rgba(0,240,255,0.85)] hover:scale-105 transition" />
-          <img src="/wordmark.png" alt="Studex" className="h-14 md:h-18 object-contain" />
+          <img src="/wordmark.png" alt="Studex" className="h-12 md:h-14 object-contain" />
         </div>
         <div className="hidden lg:flex items-center gap-2 ml-3 pl-4 border-l border-white/10">
           <Sparkles className="w-4.5 h-4.5 text-electric-400 animate-pulse" />

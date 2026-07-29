@@ -137,9 +137,9 @@ export async function registerAccountAsync(
 
     accounts[normalizedEmail] = newAccount;
     saveAccounts(accounts);
+    // Local/offline mode — no real email server, skip verification requirement
     return {
-      message: 'Please verify your email before continuing.',
-      verificationLink: `${window.location.origin}?verifyToken=demo_token&email=${encodeURIComponent(normalizedEmail)}`,
+      message: 'Account created successfully! You can now sign in.',
     };
   }
 }
