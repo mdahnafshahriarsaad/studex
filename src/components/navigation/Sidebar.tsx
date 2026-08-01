@@ -15,7 +15,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ settings }) => {
   const navItems = [
     { path: '/dashboard', label: t('nav.dashboard', lang), icon: Home },
     { path: '/todays-target', label: t('nav.todaysTarget', lang), icon: Target },
-    { path: '/calendar', label: 'Study Calendar', icon: CalendarDays },
+    { path: '/calendar', label: t('nav.calendar', lang), icon: CalendarDays },
     { path: '/complete-syllabus', label: t('nav.completeSyllabus', lang), icon: Compass },
     { path: '/focus', label: t('nav.focus', lang), icon: Play },
     { path: '/subjects', label: t('nav.subjects', lang), icon: BookOpen },
@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ settings }) => {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-black/85 backdrop-blur-2xl border-r border-white/10 p-5 z-40 select-none">
+    <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 glass-nav border-r border-white/10 p-5 z-40 select-none">
       {/* Brand Header */}
       <div className="flex flex-col items-center justify-center gap-3 px-2 py-4 mb-4 border-b border-white/10 text-center">
         <img

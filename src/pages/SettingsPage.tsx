@@ -20,9 +20,9 @@ interface SettingsPageProps {
 
 const THEME_OPTIONS: { id: ThemeMode; label: string; desc: string }[] = [
   { id: 'AMOLED Dark', label: 'AMOLED Dark', desc: 'Pure Apple AMOLED black (Default)' },
-  { id: 'Midnight Blue', label: 'Midnight Blue', desc: 'Deep sapphire navy glass' },
-  { id: 'Light Glass', label: 'Light Glass', desc: 'Frosted white crystal glass' },
-  { id: 'Minimal White', label: 'Minimal White', desc: 'Ultra clean minimal light theme' },
+  { id: 'Ocean Blue', label: 'Ocean Blue', desc: 'Deep sapphire navy glass' },
+  { id: 'Soft Sage Glass', label: 'Soft Sage Glass', desc: 'Apple-inspired soft green frosted glass' },
+  { id: 'Neo Green', label: 'Neo Green', desc: 'Dark premium with bright green accent' },
 ];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({

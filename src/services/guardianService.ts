@@ -1,7 +1,9 @@
 import { UserProfile } from '../types';
 
 export function generateGuardianPasscode(): string {
-  return `STX-GUARD-${Math.floor(1000 + Math.random() * 9000)}`;
+  const seg1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const seg2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `STDX-${seg1}-${seg2}`;
 }
 
 export interface DailyReportSummary {
@@ -34,15 +36,7 @@ export function generateDailyReportSummary(profile: UserProfile): DailyReportSum
   const completedPages = profile.subjects.reduce((sum, s) => sum + (s.completedPages || 0), 0);
   const overallProgress = totalPages > 0 ? Math.min(100, Math.round((completedPages / totalPages) * 100)) : 0;
 
-  const reportText = `STUDEX DAILY REPORT
-Date: ${todayStr}
-Student: ${profile.name} (${profile.selectedClass})
------------------------------
-Study Time: ${timeFormatted}
-Pages Completed: ${totalTodayPages}
-Sessions Completed: ${todaySessions.length}
-Overall Progress: ${overallProgress}%
-Current Streak: ${profile.gamification?.currentStreak || 1} Days`;
+  const reportText = `STUDEX DAILY REPORT\nDate: ${todayStr}\nStudent: ${profile.name} (${profile.selectedClass})\n-----------------------------\nStudy Time: ${timeFormatted}\nPages Completed: ${totalTodayPages}\nSessions Completed: ${todaySessions.length}\nOverall Progress: ${overallProgress}%\nCurrent Streak: ${profile.gamification?.currentStreak || 1} Days`;
 
   return {
     date: todayStr,

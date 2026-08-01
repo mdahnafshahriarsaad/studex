@@ -19,7 +19,7 @@ export const Header: React.FC<HeaderProps> = ({ profile, settings, onOpenAuthMod
   const currentAcc = getCurrentUserAccount();
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-black/80 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between select-none">
+    <header className="sticky top-0 z-30 w-full glass-nav border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between select-none">
       {/* Brand & Workspace indicator */}
       <div className="flex items-center gap-3.5">
         <div className="flex items-center gap-3.5 cursor-pointer" onClick={() => navigate('/dashboard')}>

@@ -22,7 +22,7 @@ function loadDB() {
     if (!fs.existsSync(DB_FILE)) {
       const initialDB = { users: {}, profiles: {}, guardianCodes: {} };
       
-      // Create default demo user
+      // Create default demo user (pre-verified)
       const demoUser = {
         id: 'usr-demo-101',
         name: 'Saad Rahman',
@@ -58,7 +58,7 @@ function loadDB() {
         studyHistory: [],
         guardian: {
           enabled: true,
-          passcode: '8899',
+          passcode: generateSTDXCode(),
           dailyReportEnabled: true,
         },
         setupCompleted: true,
@@ -75,7 +75,7 @@ function loadDB() {
 
       initialDB.users[DEMO_EMAIL] = demoUser;
       initialDB.profiles[DEMO_EMAIL] = { profile: demoProfile, settings: demoSettings };
-      initialDB.guardianCodes['8899'] = DEMO_EMAIL;
+      initialDB.guardianCodes[demoProfile.guardian.passcode] = DEMO_EMAIL;
 
       fs.writeFileSync(DB_FILE, JSON.stringify(initialDB, null, 2));
       return initialDB;
@@ -115,8 +115,65 @@ function saveDB(db) {
   }
 }
 
+// Generate STDX-XXXX-XXXX format guardian code
+function generateSTDXCode() {
+  const seg1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const seg2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `STDX-${seg1}-${seg2}`;
+}
+
+// Email sender (using nodemailer if SMTP env vars set, otherwise logs the link)
+async function sendVerificationEmail(email, verificationLink) {
+  // Try to use nodemailer if configured
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    try {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      });
+      await transporter.sendMail({
+        from: `"Studex" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: 'Verify Your Studex Account',
+        html: `
+          <div style="background:#000;color:#fff;padding:40px;font-family:Inter,sans-serif;">
+            <div style="text-align:center;margin-bottom:30px;">
+              <h1 style="color:#00F0FF;">STUDEX</h1>
+              <p style="color:#888;">Smart Academic Planner</p>
+            </div>
+            <h2 style="margin-bottom:10px;">Verify Your Email</h2>
+            <p style="color:#aaa;">Click the button below to verify your Studex account:</p>
+            <div style="text-align:center;margin:30px 0;">
+              <a href="${verificationLink}"
+                 style="background:linear-gradient(to right,#0A84FF,#00F0FF);color:#000;padding:14px 32px;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;">
+                Verify Email Address
+              </a>
+            </div>
+            <p style="color:#555;font-size:12px;">If the button doesn't work, copy this link:</p>
+            <p style="color:#00F0FF;font-size:12px;word-break:break-all;">${verificationLink}</p>
+            <p style="color:#444;font-size:10px;margin-top:30px;">© 2026 Studex. All Rights Reserved.</p>
+          </div>
+        `,
+      });
+      console.log(`Verification email sent to ${email}`);
+      return true;
+    } catch (mailErr) {
+      console.error('Failed to send email via SMTP:', mailErr.message);
+      console.log(`[EMAIL_FALLBACK] Verification link for ${email}: ${verificationLink}`);
+      return false;
+    }
+  }
+  
+  // No SMTP configured — log the link for development
+  console.log(`[EMAIL_FALLBACK] Verification link for ${email}: ${verificationLink}`);
+  return false;
+}
+
 // 1. SIGNUP ENDPOINT
-app.post('/api/auth/signup', (req, res) => {
+app.post('/api/auth/signup', async (req, res) => {
   try {
     const { email, password, name, selectedClass } = req.body;
     if (!email || !password || !name) {
@@ -138,12 +195,14 @@ app.post('/api/auth/signup', (req, res) => {
       name: name.trim(),
       email: normalizedEmail,
       passwordHash: crypto.createHash('sha256').update(password).digest('hex'),
-      isVerified: true, // Auto-verify for seamless experience
+      isVerified: false, // Require email verification
       verificationToken,
       verificationOtp: otpCode,
       createdAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
     };
+
+    const guardianCode = generateSTDXCode();
 
     const defaultProfile = {
       name: name.trim(),
@@ -170,7 +229,7 @@ app.post('/api/auth/signup', (req, res) => {
       studyHistory: [],
       guardian: {
         enabled: true,
-        passcode: Math.floor(1000 + Math.random() * 9000).toString(),
+        passcode: guardianCode,
         dailyReportEnabled: true,
       },
       setupCompleted: true,
@@ -187,15 +246,18 @@ app.post('/api/auth/signup', (req, res) => {
 
     db.users[normalizedEmail] = newUser;
     db.profiles[normalizedEmail] = { profile: defaultProfile, settings: defaultSettings };
-    db.guardianCodes[defaultProfile.guardian.passcode] = normalizedEmail;
+    db.guardianCodes[guardianCode] = normalizedEmail;
 
     saveDB(db);
 
     const verificationLink = `/?verifyToken=${verificationToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
+    // Attempt to send verification email
+    await sendVerificationEmail(normalizedEmail, verificationLink);
+
     res.status(201).json({
-      message: 'Account created successfully!',
-      user: { id: newUser.id, name: newUser.name, email: newUser.email, isVerified: true },
+      message: 'Account created! Please check your email to verify your account before signing in.',
+      user: { id: newUser.id, name: newUser.name, email: newUser.email, isVerified: false },
       verificationToken,
       verificationLink,
       otpCode,
@@ -227,12 +289,14 @@ app.post('/api/auth/verify-email', (req, res) => {
 
     if (targetUserEmail && db.users[targetUserEmail]) {
       db.users[targetUserEmail].isVerified = true;
+      delete db.users[targetUserEmail].verificationToken;
       saveDB(db);
+      return res.json({ message: 'Email verified successfully! You can now log in.', verified: true });
     }
 
-    res.json({ message: 'Email verified successfully! You can now log in.', verified: true });
+    return res.status(400).json({ error: 'Invalid or expired verification link.' });
   } catch (err) {
-    res.json({ message: 'Email verified successfully!', verified: true });
+    res.status(500).json({ error: 'Verification failed.' });
   }
 });
 
@@ -257,8 +321,17 @@ app.post('/api/auth/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid password. Please check your credentials.' });
     }
 
-    // Auto-verify if unverified
-    user.isVerified = true;
+    // CHECK VERIFICATION STATUS — gate login if not verified
+    if (!user.isVerified) {
+      const verificationLink = `/?verifyToken=${user.verificationToken}&email=${encodeURIComponent(normalizedEmail)}`;
+      return res.status(403).json({
+        error: 'Please verify your email before signing in.',
+        unverified: true,
+        email: normalizedEmail,
+        verificationLink,
+      });
+    }
+
     user.lastLoginAt = new Date().toISOString();
     saveDB(db);
 
@@ -351,14 +424,14 @@ app.get('/api/guardian/lookup', (req, res) => {
     const { code } = req.query;
     if (!code) return res.status(400).json({ error: 'Guardian code required.' });
 
-    const cleanCode = code.toString().trim().toUpperCase().replace('STUDEX-GUARDIAN-', '');
+    const cleanCode = code.toString().trim().toUpperCase();
     const db = loadDB();
 
     let targetEmail = db.guardianCodes[cleanCode];
     if (!targetEmail) {
       for (const em of Object.keys(db.profiles)) {
         const p = db.profiles[em]?.profile;
-        if (p?.guardian?.passcode === cleanCode) {
+        if (p?.guardian?.passcode && p.guardian.passcode.toUpperCase() === cleanCode) {
           targetEmail = em;
           break;
         }

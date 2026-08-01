@@ -130,7 +130,7 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile, onUpdatePro
 
               <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
                 <span className="text-lg font-mono font-extrabold text-electric-400 tracking-wider">
-                  STUDEX-{guardianInfo.passcode}
+                  {guardianInfo.passcode}
                 </span>
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="glass" icon={copiedCode ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} onClick={handleCopyPasscode}>
@@ -159,7 +159,7 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile, onUpdatePro
                   type="text"
                   value={inputCode}
                   onChange={(e) => setInputCode(e.target.value)}
-                  placeholder="e.g. STUDEX-9842"
+                  placeholder="e.g. STDX-74F9-H2LQ"
                   className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs uppercase tracking-wider font-mono focus:border-electric-400 focus:outline-none"
                 />
                 <Button variant="primary" size="md" icon={<ShieldCheck className="w-4 h-4" />} onClick={() => handleConnectWithCode(inputCode)}>

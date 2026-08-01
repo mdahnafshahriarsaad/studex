@@ -344,13 +344,13 @@ export function resetPassword(email: string, newPass: string): boolean {
 }
 
 export function findAccountByGuardianCode(code: string): UserAccount | null {
-  const cleanCode = code.trim().toUpperCase().replace('STUDEX-GUARDIAN-', '');
+  const cleanCode = code.trim().toUpperCase();
   const accounts = getAllAccounts();
 
   for (const email of Object.keys(accounts)) {
     const acc = accounts[email];
     const guardianCode = acc.profile?.guardian?.passcode?.toUpperCase();
-    if (guardianCode && (guardianCode === cleanCode || `STUDEX-GUARDIAN-${guardianCode}` === code.trim().toUpperCase())) {
+    if (guardianCode && (guardianCode === cleanCode || `STUDEX-${guardianCode}` === cleanCode)) {
       return acc;
     }
   }

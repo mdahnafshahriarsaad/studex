@@ -11,7 +11,7 @@
 
   body.lang-bengali,
   [data-lang="Bengali"] {
-    font-family: 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, sans-serif !important;
+    font-family: 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif !important;
   }
 }
 
@@ -26,97 +26,212 @@ body.theme-amoled {
 }
 
 body.theme-amoled .glass-panel {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+body.theme-amoled .glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+body.theme-amoled .glass-nav {
+  background: rgba(0, 0, 0, 0.85);
   border-color: rgba(255, 255, 255, 0.10);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7);
 }
 
-/* Theme 2: Midnight Blue */
-body.theme-midnight {
-  background-color: #060B19;
-  color: #f1f5f9;
+/* Theme 2: Ocean Blue */
+body.theme-ocean {
+  background: linear-gradient(145deg, #020617 0%, #0a1628 50%, #061022 100%);
+  color: #e2e8f0;
 }
 
-body.theme-midnight .glass-panel {
+body.theme-ocean .glass-panel {
   background: rgba(15, 23, 42, 0.55);
   border-color: rgba(56, 189, 248, 0.20);
-  box-shadow: 0 12px 40px 0 rgba(2, 6, 23, 0.8);
+  box-shadow: 0 12px 40px 0 rgba(2, 6, 23, 0.8), inset 0 1px 0 rgba(56,189,248,0.15);
 }
 
-/* Theme 3: Light Glass */
-body.theme-light-glass {
-  background-color: #EBF1F5;
-  color: #0F172A;
+body.theme-ocean .glass-input {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(56, 189, 248, 0.20);
+  color: #e2e8f0;
 }
 
-body.theme-light-glass .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(0, 102, 255, 0.15);
-  box-shadow: 0 8px 30px 0 rgba(0, 102, 255, 0.08);
+body.theme-ocean .glass-nav {
+  background: rgba(2, 6, 23, 0.88);
+  border-color: rgba(56, 189, 248, 0.20);
 }
 
-body.theme-light-glass h1,
-body.theme-light-glass h2,
-body.theme-light-glass h3,
-body.theme-light-glass h4,
-body.theme-light-glass h5,
-body.theme-light-glass strong {
-  color: #0F172A !important;
+body.theme-ocean .glass-panel-hover:hover {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(56, 189, 248, 0.40);
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.15), 0 12px 40px 0 rgba(2, 6, 23, 0.8);
 }
 
-body.theme-light-glass .text-neutral-400,
-body.theme-light-glass .text-neutral-300 {
-  color: #475569 !important;
+/* Theme 3: Soft Sage Glass (Apple-inspired, soft green gradient, frosted glass) */
+body.theme-soft-sage {
+  background: linear-gradient(160deg, #f0f4f0 0%, #e8efe8 40%, #f5f7f2 100%);
+  color: #1a2e1a;
 }
 
-/* Theme 4: Minimal White */
-body.theme-minimal-white {
-  background-color: #FAFAFA;
-  color: #18181B;
+body.theme-soft-sage .glass-panel {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-color: rgba(134, 179, 134, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(34, 87, 34, 0.08), inset 0 1px 0 rgba(255,255,255,0.6);
 }
 
-body.theme-minimal-white .glass-panel {
-  background: rgba(255, 255, 255, 0.90);
-  border-color: rgba(228, 228, 231, 0.9);
-  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
+body.theme-soft-sage .glass-input {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(134, 179, 134, 0.30);
+  color: #1a2e1a;
 }
 
-body.theme-minimal-white h1,
-body.theme-minimal-white h2,
-body.theme-minimal-white h3,
-body.theme-minimal-white h4,
-body.theme-minimal-white h5,
-body.theme-minimal-white strong {
-  color: #18181B !important;
+body.theme-soft-sage .glass-input:focus {
+  border-color: #5a9e5a;
+  box-shadow: 0 0 15px rgba(90, 158, 90, 0.20);
 }
 
-body.theme-minimal-white .text-neutral-400,
-body.theme-minimal-white .text-neutral-300 {
-  color: #52525B !important;
+body.theme-soft-sage .glass-nav {
+  background: rgba(240, 244, 240, 0.88);
+  border-color: rgba(134, 179, 134, 0.20);
+}
+
+body.theme-soft-sage h1,
+body.theme-soft-sage h2,
+body.theme-soft-sage h3,
+body.theme-soft-sage h4,
+body.theme-soft-sage h5,
+body.theme-soft-sage strong {
+  color: #1a2e1a !important;
+}
+
+body.theme-soft-sage .text-neutral-400,
+body.theme-soft-sage .text-neutral-300,
+body.theme-soft-sage .text-neutral-500 {
+  color: #5a6b5a !important;
+}
+
+body.theme-soft-sage .glass-panel-hover:hover {
+  background: rgba(255, 255, 255, 0.70);
+  border-color: rgba(90, 158, 90, 0.40);
+  box-shadow: 0 8px 30px 0 rgba(34, 87, 34, 0.12);
+}
+
+body.theme-soft-sage .text-electric-400 {
+  color: #3d8b3d !important;
+}
+
+body.theme-soft-sage .bg-electric-500\/15,
+body.theme-soft-sage .bg-electric-500\/20 {
+  background-color: rgba(90, 158, 90, 0.15) !important;
+}
+
+body.theme-soft-sage .border-electric-500\/30,
+body.theme-soft-sage .border-electric-500\/40 {
+  border-color: rgba(90, 158, 90, 0.30) !important;
+}
+
+body.theme-soft-sage .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+body.theme-soft-sage .bg-black\/80,
+body.theme-soft-sage .bg-black\/95 {
+  background-color: rgba(240, 244, 240, 0.92) !important;
+}
+
+body.theme-soft-sage .shadow-glow-sm {
+  box-shadow: 0 0 15px rgba(90, 158, 90, 0.20) !important;
+}
+
+/* Theme 4: Neo Green (dark premium, bright green accent, minimal) */
+body.theme-neo-green {
+  background: linear-gradient(145deg, #0a0f0a 0%, #0d1a0d 50%, #0a120a 100%);
+  color: #e0f0e0;
+}
+
+body.theme-neo-green .glass-panel {
+  background: rgba(16, 32, 16, 0.50);
+  border-color: rgba(34, 197, 94, 0.18);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(34,197,94,0.10);
+}
+
+body.theme-neo-green .glass-input {
+  background: rgba(16, 32, 16, 0.55);
+  border-color: rgba(34, 197, 94, 0.20);
+  color: #e0f0e0;
+}
+
+body.theme-neo-green .glass-input:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.25);
+}
+
+body.theme-neo-green .glass-nav {
+  background: rgba(10, 15, 10, 0.90);
+  border-color: rgba(34, 197, 94, 0.15);
+}
+
+body.theme-neo-green .glass-panel-hover:hover {
+  background: rgba(16, 32, 16, 0.65);
+  border-color: rgba(34, 197, 94, 0.35);
+  box-shadow: 0 0 35px rgba(34, 197, 94, 0.12), 0 12px 40px 0 rgba(0, 0, 0, 0.8);
+}
+
+body.theme-neo-green .text-electric-400 {
+  color: #4ade80 !important;
+}
+
+body.theme-neo-green .text-electric-500 {
+  color: #22c55e !important;
+}
+
+body.theme-neo-green .bg-electric-500\/15,
+body.theme-neo-green .bg-electric-500\/20 {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+}
+
+body.theme-neo-green .border-electric-500\/30,
+body.theme-neo-green .border-electric-500\/40 {
+  border-color: rgba(34, 197, 94, 0.30) !important;
+}
+
+body.theme-neo-green .shadow-glow-sm {
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.20) !important;
 }
 
 
 /* ===================================================
-   2. IMPROVED iOS LIQUID GLASS EFFECT
+   2. LIQUID GLASS EFFECT (ENHANCED)
    =================================================== */
 
 /* High Quality Mode (Full heavy blur, glows & reflections) */
 body.perf-high-quality .glass-panel {
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(32px) saturate(210%);
+  -webkit-backdrop-filter: blur(32px) saturate(210%);
 }
 
 body.perf-high-quality .glass-panel-hover:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
   border-color: rgba(0, 240, 255, 0.45);
   box-shadow: 0 0 35px rgba(0, 240, 255, 0.22), 0 12px 40px 0 rgba(0, 0, 0, 0.8);
   transform: translateY(-2px);
 }
 
+body.perf-high-quality .glass-nav {
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+}
+
 /* Performance Mode (Optimized for low-end mobile devices) */
 body.perf-performance .glass-panel {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
 }
 
 body.perf-performance .glass-panel-hover:hover {
@@ -125,18 +240,29 @@ body.perf-performance .glass-panel-hover:hover {
   transform: none;
 }
 
+body.perf-performance .glass-nav {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 
 /* Standard Glass Utilities */
 .glass-panel {
   border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #ffffff;
+  border-radius: 0.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .glass-input:focus {
@@ -154,12 +280,17 @@ body.perf-performance .glass-panel-hover:hover {
   box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
 }
 
-/* Watermark Background Styling */
+/* Background Studex Watermark - BRIGHTENED (Task 5) */
 .watermark-bg {
   background-image: url('/watermark.png');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: 400px;
+}
+
+.watermark-glow {
+  opacity: 0.10;
+  filter: brightness(1.8) blur(1px);
 }
 
 /* Custom Sleek Scrollbar */
@@ -179,4 +310,24 @@ body.perf-performance .glass-panel-hover:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 240, 255, 0.4);
+}
+
+/* Light theme scrollbar overrides */
+body.theme-soft-sage::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.theme-soft-sage::-webkit-scrollbar-thumb {
+  background: rgba(90, 158, 90, 0.25);
+}
+
+/* Performance optimization: will-change for animated elements */
+.glass-panel {
+  will-change: transform;
+  contain: layout style;
+}
+
+body.perf-performance .glass-panel {
+  will-change: auto;
+  contain: layout;
 }

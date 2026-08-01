@@ -85,7 +85,11 @@ export function getAppSettings(): AppSettings {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.APP_SETTINGS);
     if (!data) return DEFAULT_APP_SETTINGS;
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    // Migrate old themes to new ones
+    if (parsed.theme === 'Midnight Blue') parsed.theme = 'Ocean Blue';
+    if (parsed.theme === 'Light Glass' || parsed.theme === 'Minimal White') parsed.theme = 'Soft Sage Glass';
+    return parsed;
   } catch {
     return DEFAULT_APP_SETTINGS;
   }
