@@ -146,7 +146,7 @@ export interface UserProfile {
   createdAt: string;
 }
 
-export type ThemeMode = 'AMOLED Dark' | 'Ocean Blue' | 'Soft Sage Glass' | 'Neo Green';
+export type ThemeMode = 'AMOLED Dark' | 'Ocean Blue' | 'Light Mode' | 'Neo Green';
 
 export interface UserAccount {
   id: string;

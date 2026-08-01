@@ -22,7 +22,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ profile, settings, onOpe
     const themeClass =
       theme === 'Ocean Blue'
         ? 'theme-ocean'
-        : theme === 'Soft Sage Glass'
+        : theme === 'Light Mode'
         ? 'theme-soft-sage'
         : theme === 'Neo Green'
         ? 'theme-neo-green'
@@ -30,10 +30,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ profile, settings, onOpe
 
     const perfClass = perf === 'Performance Mode' ? 'perf-performance' : 'perf-high-quality';
 
-    document.body.className = `${themeClass} ${perfClass}`;
-  }, [settings?.theme, settings?.performanceMode]);
+    const langClass = settings?.language === 'Bengali' ? 'lang-bengali' : '';
+    document.documentElement.lang = settings?.language === 'Bengali' ? 'bn' : 'en';
+    document.body.className = `${themeClass} ${perfClass} ${langClass}`.trim();
+  }, [settings?.theme, settings?.performanceMode, settings?.language]);
 
-  const isLightTheme = settings?.theme === 'Soft Sage Glass';
+  const isLightTheme = settings?.theme === 'Light Mode';
 
   return (
     <div className="min-h-screen text-white flex flex-col md:flex-row relative overflow-x-hidden">

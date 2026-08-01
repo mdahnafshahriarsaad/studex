@@ -108,7 +108,7 @@ export async function registerAccountAsync(
 
     return data;
   } catch (backendErr: any) {
-    // If backend is unreachable during client-side demo, handle with local simulation
+    // If backend is unreachable, fallback to localStorage-only mode
     console.warn('Backend unavailable, fallback to local register:', backendErr.message);
     const accounts = getAllAccounts();
     if (accounts[normalizedEmail]) {
@@ -137,9 +137,8 @@ export async function registerAccountAsync(
 
     accounts[normalizedEmail] = newAccount;
     saveAccounts(accounts);
-    // Local/offline mode — no real email server, skip verification requirement
     return {
-      message: 'Account created successfully! You can now sign in.',
+      message: 'Account created! You can now sign in.',
     };
   }
 }

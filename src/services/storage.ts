@@ -88,7 +88,7 @@ export function getAppSettings(): AppSettings {
     const parsed = JSON.parse(data);
     // Migrate old themes to new ones
     if (parsed.theme === 'Midnight Blue') parsed.theme = 'Ocean Blue';
-    if (parsed.theme === 'Light Glass' || parsed.theme === 'Minimal White') parsed.theme = 'Soft Sage Glass';
+    if (parsed.theme === 'Light Glass' || parsed.theme === 'Minimal White' || parsed.theme === 'Soft Sage Glass' || parsed.theme === 'Midnight Card') parsed.theme = 'Light Mode';
     return parsed;
   } catch {
     return DEFAULT_APP_SETTINGS;

@@ -21,7 +21,7 @@ interface SettingsPageProps {
 const THEME_OPTIONS: { id: ThemeMode; label: string; desc: string }[] = [
   { id: 'AMOLED Dark', label: 'AMOLED Dark', desc: 'Pure Apple AMOLED black (Default)' },
   { id: 'Ocean Blue', label: 'Ocean Blue', desc: 'Deep sapphire navy glass' },
-  { id: 'Soft Sage Glass', label: 'Soft Sage Glass', desc: 'Apple-inspired soft green frosted glass' },
+  { id: 'Light Mode', label: 'Light Mode', desc: 'Clean light card UI with Apple-level minimalism' },
   { id: 'Neo Green', label: 'Neo Green', desc: 'Dark premium with bright green accent' },
 ];
 

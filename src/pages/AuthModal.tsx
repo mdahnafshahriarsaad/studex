@@ -75,12 +75,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
         }
         const res = await registerAccountAsync(email, password, name, selectedClass);
         if (res.verificationLink) {
-          // Real backend sent a verification email
+          // Backend requires email verification
           setVerificationPending(true);
           setVerificationLink(res.verificationLink);
           setSuccessMsg(res.message || 'Please verify your email before continuing.');
         } else {
-          // Local/offline mode — no verification needed, go straight to login
+          // Account created (auto-verified or local mode)
           setSuccessMsg(res.message || 'Account created! You can now sign in.');
           setTimeout(() => {
             setMode('login');
