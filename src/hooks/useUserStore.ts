@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { UserProfile, AppSettings, AnimationMode, SubjectItem, Chapter, ChapterDifficulty, RevisionItem } from '../types';
+import { UserProfile, AppSettings, AnimationMode, SubjectItem, Chapter, ChapterDifficulty, RevisionItem, ClassLevel } from '../types';
 import { getUserProfile, saveUserProfile, getAppSettings, saveAppSettings } from '../services/storage';
 import { calculateTotalPages, recalculateSubjectStats, calculateMissedTargetRecovery } from '../services/plannerEngine';
 import { generateRevisionSchedule } from '../services/revisionService';
 import { syncCurrentAccountData, subscribeToCloudSync, getCurrentUserAccount } from '../services/authService';
+import { getSyllabusForClass } from '../utils/subjectGenerator';
 
 export function useUserStore() {
   const [profile, setProfileState] = useState<UserProfile>(() => {
@@ -140,7 +141,53 @@ export function useUserStore() {
       }
       return subj;
     });
+    updateProfile({ subjects: updatedSubjects });
+  };
 
+  const editChapterInSubject = (
+    subjectId: string,
+    chapterId: string,
+    updates: { name?: string; startPage?: number; endPage?: number; difficulty?: ChapterDifficulty }
+  ) => {
+    const updatedSubjects = profile.subjects.map((subj) => {
+      if (subj.id === subjectId) {
+        const updatedChapters = subj.chapters.map((ch) => {
+          if (ch.id === chapterId) {
+            const sp = updates.startPage ?? ch.startPage;
+            const ep = updates.endPage ?? ch.endPage;
+            return {
+              ...ch,
+              name: updates.name ?? ch.name,
+              startPage: sp,
+              endPage: ep,
+              totalPages: calculateTotalPages(sp, ep),
+              difficulty: updates.difficulty ?? ch.difficulty,
+            };
+          }
+          return ch;
+        });
+        return recalculateSubjectStats({ ...subj, chapters: updatedChapters });
+      }
+      return subj;
+    });
+    updateProfile({ subjects: updatedSubjects });
+  };
+
+  const reorderChapters = (subjectId: string, chapterId: string, direction: 'up' | 'down') => {
+    const updatedSubjects = profile.subjects.map((subj) => {
+      if (subj.id === subjectId) {
+        const chapters = [...subj.chapters];
+        const index = chapters.findIndex((c) => c.id === chapterId);
+        if (index === -1) return subj;
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= chapters.length) return subj;
+        const temp = chapters[index];
+        chapters[index] = chapters[targetIndex];
+        chapters[targetIndex] = temp;
+        return recalculateSubjectStats({ ...subj, chapters });
+      }
+      return subj;
+    });
     updateProfile({ subjects: updatedSubjects });
   };
 
@@ -172,6 +219,26 @@ export function useUserStore() {
     updateProfile({
       subjects: updatedSubjects,
       revisions: [...(profile.revisions || []), ...newRevisions],
+    });
+  };
+
+  // SYLLABUS OPERATIONS
+  const replaceSyllabus = (newClass: ClassLevel) => {
+    const newSubjects = getSyllabusForClass(newClass).map((s, idx) => ({
+      ...s,
+      id: `subj-${Date.now()}-${idx}`,
+      order: idx + 1,
+      chapters: s.chapters.map((ch, ci) => ({
+        ...ch,
+        id: `ch-${Date.now()}-${idx}-${ci}`,
+        completed: false,
+        completedAt: undefined,
+      })),
+    }));
+    updateProfile({
+      selectedClass: newClass,
+      subjects: newSubjects,
+      revisions: [],
     });
   };
 
@@ -208,7 +275,10 @@ export function useUserStore() {
     reorderSubjects,
     addChapterToSubject,
     removeChapterFromSubject,
+    editChapterInSubject,
+    reorderChapters,
     toggleChapterComplete,
+    replaceSyllabus,
     toggleRevisionComplete,
     triggerMissedRecovery,
     resetSetup,

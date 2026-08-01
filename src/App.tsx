@@ -31,7 +31,10 @@ export const App: React.FC = () => {
     reorderSubjects,
     addChapterToSubject,
     removeChapterFromSubject,
+    editChapterInSubject,
+    reorderChapters,
     toggleChapterComplete,
+    replaceSyllabus,
     toggleRevisionComplete,
     triggerMissedRecovery,
     resetSetup,
@@ -148,6 +151,8 @@ export const App: React.FC = () => {
                 onReorderSubjects={reorderSubjects}
                 onAddChapter={addChapterToSubject}
                 onRemoveChapter={removeChapterFromSubject}
+                onEditChapter={editChapterInSubject}
+                onReorderChapters={reorderChapters}
                 onToggleChapterComplete={toggleChapterComplete}
               />
             }

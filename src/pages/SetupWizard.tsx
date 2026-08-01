@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile, ClassLevel, DailyStudyHours, PreferredTime, Chapter, ChapterDifficulty, SubjectItem } from '../types';
 import { CLASS_LEVELS, DAILY_TIME_OPTIONS, PREFERRED_TIME_OPTIONS, AVATAR_PRESETS } from '../utils/constants';
-import { getDefaultSubjectsForClass, calculateTotalPages } from '../utils/subjectGenerator';
+import { getDefaultSubjectsForClass, calculateTotalPages, OPTIONAL_SUBJECTS, getDefaultSubjectNamesForClass } from '../utils/subjectGenerator';
 import { Button } from '../components/ui/Button';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Badge } from '../components/ui/Badge';
 import {
   ArrowRight, ArrowLeft, Plus, Trash2, CheckCircle2, BookOpen, Clock, Sun, SunMedium, Sunset, Moon,
-  User, Calendar, Layers, PlusCircle, AlertCircle
+  User, Calendar, Layers, PlusCircle, AlertCircle, Check, Square
 } from 'lucide-react';
 
 interface SetupWizardProps {
@@ -44,15 +44,60 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ initialProfile, onComp
   const [chDiff, setChDiff] = useState<ChapterDifficulty>('Medium');
   const [chFormError, setChFormError] = useState<string>('');
 
-  // Handle class selection change & auto generate subjects
-  const handleClassChange = (cls: ClassLevel) => {
-    setSelectedClass(cls);
+  // Class change confirmation state
+  const [classChangeConfirm, setClassChangeConfirm] = useState<ClassLevel | null>(null);
+
+  // Track which default + optional subjects are checked
+  const [checkedSubjectNames, setCheckedSubjectNames] = useState<Set<string>>(new Set());
+
+  // Populate checked subjects when class changes are confirmed
+  const initializeSubjectsForClass = (cls: ClassLevel) => {
+    const allDefaults = getDefaultSubjectNamesForClass(cls);
     const generated = getDefaultSubjectsForClass(cls);
     setSubjects(generated);
+    setCheckedSubjectNames(new Set(allDefaults));
     if (generated.length > 0) {
       setActiveSubjectId(generated[0].id);
     }
   };
+
+  const handleClassClick = (cls: ClassLevel) => {
+    if (cls === selectedClass) return;
+    // If subjects already have data, show confirmation
+    if (subjects.length > 0 && subjects.some(s => s.chapters.length > 0)) {
+      setClassChangeConfirm(cls);
+    } else {
+      setSelectedClass(cls);
+      initializeSubjectsForClass(cls);
+    }
+  };
+
+  const handleClassChangeConfirm = (action: 'replace' | 'keep' | 'cancel') => {
+    if (!classChangeConfirm) { setClassChangeConfirm(null); return; }
+    if (action === 'replace') {
+      setSelectedClass(classChangeConfirm);
+      initializeSubjectsForClass(classChangeConfirm);
+    } else if (action === 'keep') {
+      setSelectedClass(classChangeConfirm);
+      // Keep existing subjects, don't regenerate
+    }
+    setClassChangeConfirm(null);
+  };
+
+  const toggleSubjectCheck = (name: string) => {
+    setCheckedSubjectNames(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  // Initialize checked subjects on mount
+  React.useEffect(() => {
+    const defaultNames = getDefaultSubjectNamesForClass(selectedClass);
+    setCheckedSubjectNames(new Set(defaultNames));
+  }, []);
 
   const handleAddSubject = () => {
     if (!newSubjectInput.trim()) return;
@@ -284,7 +329,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ initialProfile, onComp
                   <button
                     key={cls}
                     type="button"
-                    onClick={() => handleClassChange(cls)}
+                    onClick={() => handleClassClick(cls)}
                     className={`p-4 rounded-xl font-semibold text-sm transition text-center border ${
                       selectedClass === cls
                         ? 'bg-electric-500/20 border-electric-500 text-electric-400 shadow-glow-sm'
@@ -295,6 +340,44 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ initialProfile, onComp
                   </button>
                 ))}
               </div>
+
+              {/* Class Change Confirmation Dialog */}
+              <AnimatePresence>
+                {classChangeConfirm && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-400" />
+                      <span className="text-sm font-semibold text-amber-300">Replace current syllabus with new class syllabus?</span>
+                    </div>
+                    <p className="text-xs text-neutral-400">Changing to {classChangeConfirm} will {subjects.some(s => s.chapters.length > 0) ? 'replace your existing chapters' : 'update the default subjects'}.</p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => handleClassChangeConfirm('replace')}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-electric-500 text-black hover:bg-electric-400 transition"
+                      >
+                        Replace
+                      </button>
+                      <button
+                        onClick={() => handleClassChangeConfirm('keep')}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-white hover:bg-white/15 transition"
+                      >
+                        Keep Existing
+                      </button>
+                      <button
+                        onClick={() => handleClassChangeConfirm('cancel')}
+                        className="px-3 py-1.5 rounded-lg text-xs text-neutral-400 hover:text-white transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
@@ -414,49 +497,132 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({ initialProfile, onComp
             </motion.div>
           )}
 
-          {/* STEP 6: Class Subjects */}
+          {/* STEP 6: Class Subjects Selection */}
           {step === 6 && (
             <motion.div key="step6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }} className="space-y-6">
               <div>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white">Class Subjects</h2>
+                  <h2 className="text-2xl font-bold text-white">Subject Selection</h2>
                   <Badge variant="electric">{selectedClass}</Badge>
                 </div>
-                <p className="text-sm text-neutral-400 mt-1">Auto-generated for {selectedClass}. Add or remove subjects.</p>
+                <p className="text-sm text-neutral-400 mt-1">Select your subjects for {selectedClass}. Default subjects are pre-checked.</p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={newSubjectInput}
-                  onChange={(e) => setNewSubjectInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()}
-                  placeholder="Add custom subject (e.g. ICT, Statistics)"
-                  className="flex-1 px-4 py-2.5 rounded-xl glass-input text-sm"
-                />
-                <Button size="sm" variant="glass" icon={<Plus className="w-4 h-4" />} onClick={handleAddSubject}>
-                  Add
-                </Button>
-              </div>
-
-              <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
-                {subjects.map((subj) => (
-                  <div key={subj.id} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-electric-500/15 border border-electric-500/30 flex items-center justify-center text-electric-400">
-                        <BookOpen className="w-4 h-4" />
-                      </div>
-                      <span className="font-medium text-sm text-white">{subj.name}</span>
-                    </div>
-
-                    <button
-                      onClick={() => handleRemoveSubject(subj.id)}
-                      className="p-1.5 text-neutral-500 hover:text-red-400 rounded-lg hover:bg-white/10 transition"
+              {/* Default Subjects with Checkboxes */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase text-neutral-400 px-1">Default Subjects</h3>
+                {subjects.map((subj) => {
+                  const isChecked = checkedSubjectNames.has(subj.name);
+                  return (
+                    <div
+                      key={subj.id}
+                      className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
+                        isChecked
+                          ? 'bg-electric-500/10 border-electric-500/30'
+                          : 'bg-white/5 border-white/10'
+                      }`}
+                      onClick={() => {
+                        toggleSubjectCheck(subj.name);
+                        if (isChecked) {
+                          handleRemoveSubject(subj.id);
+                        } else {
+                          // Re-add the subject back from defaults
+                          const defaultSubj = getDefaultSubjectsForClass(selectedClass).find(s => s.name === subj.name);
+                          if (defaultSubj) {
+                            const reAdded: SubjectItem = { ...defaultSubj, id: `subj-${Date.now()}`, order: subjects.length };
+                            setSubjects(prev => [...prev, reAdded]);
+                          }
+                        }
+                      }}
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3">
+                        {isChecked
+                          ? <Check className="w-5 h-5 text-electric-400" />
+                          : <Square className="w-5 h-5 text-neutral-500" />
+                        }
+                        <div className="w-8 h-8 rounded-lg bg-electric-500/15 border border-electric-500/30 flex items-center justify-center text-electric-400">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="font-medium text-sm text-white block">{subj.name}</span>
+                          <span className="text-[11px] text-neutral-400">{isChecked ? (subj.chapters?.length || 0) + ' chapters preloaded' : 'Not selected'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Optional / Additional Subjects */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase text-neutral-400 px-1">Additional Subjects</h3>
+                {OPTIONAL_SUBJECTS.map((optName) => {
+                  const isChecked = checkedSubjectNames.has(optName);
+                  return (
+                    <div
+                      key={optName}
+                      className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
+                        isChecked
+                          ? 'bg-electric-500/10 border-electric-500/30'
+                          : 'bg-white/5 border-white/10'
+                      }`}
+                      onClick={() => {
+                        toggleSubjectCheck(optName);
+                        if (!isChecked) {
+                          const newSubj: SubjectItem = {
+                            id: `subj-${Date.now()}`,
+                            name: optName,
+                            order: subjects.length,
+                            chapters: [],
+                            totalChapters: 0,
+                            completedChapters: 0,
+                            totalPages: 0,
+                            completedPages: 0,
+                            remainingPages: 0,
+                            progressPercent: 0,
+                          };
+                          setSubjects(prev => [...prev, newSubj]);
+                        } else {
+                          const existing = subjects.find(s => s.name === optName);
+                          if (existing) handleRemoveSubject(existing.id);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isChecked
+                          ? <Check className="w-5 h-5 text-electric-400" />
+                          : <Square className="w-5 h-5 text-neutral-500" />
+                        }
+                        <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-neutral-400">
+                          <BookOpen className="w-4 h-4" />
+                        </div>
+                        <span className="font-medium text-sm text-neutral-300">{optName}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add Custom Subject */}
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase text-neutral-400 px-1">Custom Subject</h3>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newSubjectInput}
+                    onChange={(e) => setNewSubjectInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddSubject()}
+                    placeholder="Enter custom subject name"
+                    className="flex-1 px-4 py-2.5 rounded-xl glass-input text-sm"
+                  />
+                  <Button size="sm" variant="glass" icon={<Plus className="w-4 h-4" />} onClick={handleAddSubject}>
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              <div className="text-xs text-neutral-400 text-center">
+                {subjects.length} subjects selected &bull; {subjects.reduce((a, s) => a + (s.chapters?.length || 0), 0)} total chapters
               </div>
             </motion.div>
           )}
