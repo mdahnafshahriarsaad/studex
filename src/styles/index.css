@@ -19,6 +19,9 @@
   }
 
   body.lang-bengali,
+  body.lang-bengali *,
+  body.lang-bengali *::before,
+  body.lang-bengali *::after,
   [data-lang="Bengali"] {
     font-family: 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif !important;
   }
