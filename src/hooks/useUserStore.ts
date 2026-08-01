@@ -85,7 +85,17 @@ export function useUserStore() {
   };
 
   const removeSubject = (subjectId: string) => {
-    updateProfile({ subjects: profile.subjects.filter((s) => s.id !== subjectId) });
+    // Deep delete: also clean related revisions and study history
+    const chapterIds = new Set(
+      profile.subjects.find((s) => s.id === subjectId)?.chapters.map((c) => c.id) || []
+    );
+    updateProfile({
+      subjects: profile.subjects.filter((s) => s.id !== subjectId),
+      revisions: (profile.revisions || []).filter((r) => r.subjectId !== subjectId),
+      studyHistory: (profile.studyHistory || []).filter(
+        (h) => h.subjectId !== subjectId && !chapterIds.has(h.chapterId)
+      ),
+    });
   };
 
   const reorderSubjects = (subjectId: string, direction: 'up' | 'down') => {
@@ -141,7 +151,12 @@ export function useUserStore() {
       }
       return subj;
     });
-    updateProfile({ subjects: updatedSubjects });
+    // Also clean related revisions and study history
+    updateProfile({
+      subjects: updatedSubjects,
+      revisions: (profile.revisions || []).filter((r) => r.chapterId !== chapterId),
+      studyHistory: (profile.studyHistory || []).filter((h) => h.chapterId !== chapterId),
+    });
   };
 
   const editChapterInSubject = (

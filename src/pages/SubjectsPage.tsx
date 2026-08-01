@@ -62,10 +62,15 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
 
 // ─── Custom Subject Modal ──────────────────────────────────────────────────
 
-function CustomSubjectModal({ onSave, onCancel }: { onSave: (name: string, desc: string, chapterCount: number) => void; onCancel: () => void }) {
+function CustomSubjectModal({ onSave, onCancel }: { onSave: (name: string, desc: string, chapterCount: number, icon: string, color: string) => void; onCancel: () => void }) {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [chapterCount, setChapterCount] = useState(3);
+  const [icon, setIcon] = useState('📖');
+  const [color, setColor] = useState('#00f0ff');
+
+  const ICONS = ['📖', '📐', '🧪', '🌍', '🤲', '💻', '📊', '🎯', '📝', '🔬', '🧮', '🎨', '🎵', '⚽', '🌿', '🏠'];
+  const COLORS = ['#00f0ff', '#8b5cf6', '#f43f5e', '#22c55e', '#f59e0b', '#ec4899', '#06b6d4', '#a78bfa'];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onCancel}>
@@ -73,7 +78,7 @@ function CustomSubjectModal({ onSave, onCancel }: { onSave: (name: string, desc:
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="glass-panel p-6 rounded-2xl border border-white/10 max-w-md w-full shadow-glass-card"
+        className="glass-panel p-6 rounded-2xl border border-white/10 max-w-md w-full shadow-glass-card max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -92,6 +97,37 @@ function CustomSubjectModal({ onSave, onCancel }: { onSave: (name: string, desc:
               className="w-full px-4 py-2.5 rounded-xl glass-input text-sm text-white placeholder-neutral-500"
               autoFocus
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-neutral-400 mb-1.5">Icon (Optional)</label>
+            <div className="flex flex-wrap gap-2">
+              {ICONS.map((em) => (
+                <button
+                  key={em}
+                  type="button"
+                  onClick={() => setIcon(em)}
+                  className={`w-9 h-9 rounded-lg text-lg flex items-center justify-center border transition ${
+                    icon === em ? 'bg-white/15 border-white/40 scale-110' : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  }`}
+                >{em}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-neutral-400 mb-1.5">Color (Optional)</label>
+            <div className="flex flex-wrap gap-2">
+              {COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  className={`w-8 h-8 rounded-full border-2 transition ${color === c ? 'border-white scale-110' : 'border-transparent'}`}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
           </div>
 
           <div>
@@ -131,7 +167,7 @@ function CustomSubjectModal({ onSave, onCancel }: { onSave: (name: string, desc:
             icon={<Plus className="w-4 h-4" />}
             onClick={() => {
               if (!name.trim()) return;
-              onSave(name.trim(), desc.trim(), chapterCount);
+              onSave(name.trim(), desc.trim(), chapterCount, icon, color);
             }}
           >
             Save
@@ -326,7 +362,7 @@ export const SubjectsPage: React.FC<SubjectsPageProps> = ({
       <AnimatePresence>
         {showCustomModal && (
           <CustomSubjectModal
-            onSave={(name, _desc, _count) => {
+            onSave={(name, _desc, _count, _icon, _color) => {
               handleAddSubj(name);
               setShowCustomModal(false);
             }}

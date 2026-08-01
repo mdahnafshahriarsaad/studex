@@ -15,6 +15,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.settings': 'Settings',
     'nav.about': 'About Studex',
     'nav.calendar': 'Study Calendar',
+    'nav.more': 'More',
+    'nav.download': 'Download App',
 
     // Header & General
     'header.academicWorkspace': 'Academic Workspace',
@@ -309,6 +311,8 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.settings': 'সেটিংস',
     'nav.about': 'স্টাডেক্স সম্পর্কে',
     'nav.calendar': 'পড়ার ক্যালেন্ডার',
+    'nav.more': 'আরও',
+    'nav.download': 'অ্যাপ ডাউনলোড',
 
     // Header & General
     'header.academicWorkspace': 'একাডেমিক ওয়ার্কস্পেস',
