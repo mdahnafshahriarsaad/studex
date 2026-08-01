@@ -131,11 +131,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
 
       {/* Skip Button */}
       <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.35 }}
-        whileHover={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={onComplete}
-        className="absolute bottom-8 text-[11px] tracking-wider text-neutral-400 hover:text-white uppercase transition-all px-4 py-1.5 rounded-full border border-white/10 glass-panel"
+        className="absolute bottom-10 text-xs tracking-wider text-white/80 hover:text-white font-medium uppercase transition-colors px-6 py-2.5 rounded-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 backdrop-blur-sm"
       >
         Skip Intro
       </motion.button>
