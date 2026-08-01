@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ===================================================
-   0. BANGLA FONT (MUST be outside @layer for max specificity)
+   0. BANGLA FONT (outside @layer for max specificity)
    =================================================== */
 body.lang-bengali,
 body.lang-bengali *,
@@ -80,217 +80,147 @@ body.theme-ocean .glass-panel-hover:hover {
 }
 
 /* ===================================================
-   Theme 3: LIGHT MODE (Apple-inspired clean light UI)
+   Theme 3: LIGHT MODE (Neumorphic Soft UI)
    =================================================== */
 body.theme-soft-sage {
-  background-color: #F5F5F7;
-  color: #1D1D1F;
+  background-color: #E8E8ED;
+  color: #1A1A1A;
 }
 
-/* Cards */
+/* Cards — neumorphic raised surface */
 body.theme-soft-sage .glass-panel {
-  background: #FFFFFF;
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  background: #E8E8ED;
+  border: none !important;
+  border-radius: 20px;
+  box-shadow: 6px 6px 12px #C8C8CD, -6px -6px 12px #FFFFFF;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 body.theme-soft-sage .glass-panel-hover:hover {
-  background: #F9F9FB;
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+  background: #E8E8ED;
+  box-shadow: 8px 8px 16px #BEBEC3, -8px -8px 16px #FFFFFF;
+  transform: translateY(-1px);
 }
 
-/* Inputs */
+/* Inputs — neumorphic inset (pressed) */
 body.theme-soft-sage .glass-input {
-  background: #F5F5F7;
-  border-color: rgba(0, 0, 0, 0.10);
-  color: #1D1D1F;
+  background: #E8E8ED;
+  border: none !important;
+  color: #1A1A1A;
+  border-radius: 12px;
+  box-shadow: inset 3px 3px 6px #C8C8CD, inset -3px -3px 6px #FFFFFF;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 body.theme-soft-sage .glass-input:focus {
-  border-color: #007AFF;
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+  box-shadow: inset 4px 4px 8px #BEBEC3, inset -4px -4px 8px #FFFFFF;
 }
 
-/* Nav (sidebar + header + bottom nav) */
+/* Nav — neumorphic raised bar */
 body.theme-soft-sage .glass-nav {
-  background: rgba(255, 255, 255, 0.72);
- backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-color: rgba(0, 0, 0, 0.06);
+  background: #E8E8ED;
+  border: none !important;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.03);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* Headings */
-body.theme-soft-sage h1,
-body.theme-soft-sage h2,
-body.theme-soft-sage h3,
-body.theme-soft-sage h4,
-body.theme-soft-sage h5,
-body.theme-soft-sage strong {
-  color: #1D1D1F !important;
+body.theme-soft-sage h1,body.theme-soft-sage h2,body.theme-soft-sage h3,body.theme-soft-sage h4,body.theme-soft-sage h5,body.theme-soft-sage strong {
+  color: #1A1A1A !important;
 }
 
-/* Muted text */
-body.theme-soft-sage .text-neutral-400,
-body.theme-soft-sage .text-neutral-300,
-body.theme-soft-sage .text-neutral-500,
-body.theme-soft-sage .text-neutral-600 {
-  color: #86868B !important;
-}
+/* Muted text — three levels */
+body.theme-soft-sage .text-neutral-300 { color: #3A3A3C !important; }
+body.theme-soft-sage .text-neutral-400 { color: #6E6E73 !important; }
+body.theme-soft-sage .text-neutral-500 { color: #8E8E93 !important; }
+body.theme-soft-sage .text-neutral-600 { color: #AEAEB2 !important; }
 
-/* Electric accent → Apple blue */
-body.theme-soft-sage .text-electric-400 {
-  color: #007AFF !important;
-}
-body.theme-soft-sage .text-electric-500 {
-  color: #005EC4 !important;
-}
-body.theme-soft-sage .text-electric-600 {
-  color: #004999 !important;
-}
+/* Accent → pure black (neumorphic CTA) */
+body.theme-soft-sage .text-electric-400 { color: #1A1A1A !important; }
+body.theme-soft-sage .text-electric-500 { color: #000000 !important; }
+body.theme-soft-sage .text-electric-600 { color: #000000 !important; }
 
+/* Active/selected backgrounds → inset neumorphic */
 body.theme-soft-sage .bg-electric-500/10,
 body.theme-soft-sage .bg-electric-500/15,
 body.theme-soft-sage .bg-electric-500/20 {
-  background-color: rgba(0, 122, 255, 0.08) !important;
+ background-color: #D8D8DD !important;
+  box-shadow: inset 2px 2px 4px #C8C8CD, inset -2px -2px 4px #FFFFFF;
 }
 
+/* Borders → neumorphic subtle */
 body.theme-soft-sage .border-electric-500/30,
 body.theme-soft-sage .border-electric-500/40 {
-  border-color: rgba(0, 122, 255, 0.25) !important;
+  border-color: #D1D1D6 !important;
 }
 
 body.theme-soft-sage .shadow-glow-sm {
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.12) !important;
+  box-shadow: inset 2px 2px 5px #C8C8CD, inset -2px -2px 5px #FFFFFF !important;
 }
 
-/* CRITICAL: Override all dark-mode utility classes used in JSX */
-body.theme-soft-sage .text-white {
-  color: #1D1D1F !important;
-}
-body.theme-soft-sage .text-neutral-200 {
-  color: #3A3A3C !important;
+/* ===== Override all dark-mode utility classes ===== */
+body.theme-soft-sage .text-white { color: #1A1A1A !important; }
+body.theme-soft-sage .text-neutral-200 { color: #3A3A3C !important; }
+
+body.theme-soft-sage .bg-white\/5 { background-color: transparent !important; }
+body.theme-soft-sage .bg-white\/10 { background-color: transparent !important; }
+body.theme-soft-sage .bg-white\/20 { background-color: #D8D8DD !important; }
+body.theme-soft-sage .bg-white\/25 { background-color: #D8D8DD !important; }
+
+/* Modal/overlay backgrounds */
+body.theme-soft-sage .bg-black\/80,
+body.theme-soft-sage .bg-black\/90,
+body.theme-soft-sage .bg-black\/95 {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-body.theme-soft-sage .bg-white/5 {
-  background-color: rgba(0, 0, 0, 0.03) !important;
-}
-body.theme-soft-sage .bg-white/10 {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-}
-body.theme-soft-sage .bg-white/20 {
-  background-color: rgba(0, 0, 0, 0.06) !important;
-}
-body.theme-soft-sage .bg-white/25 {
-  background-color: rgba(0, 0, 0, 0.07) !important;
+/* Borders */
+body.theme-soft-sage .border-white\/5,body.theme-soft-sage .border-white\/10,body.theme-soft-sage .border-white\/20,body.theme-soft-sage .border-white\/25 {
+  border-color: #D1D1D6 !important;
 }
 
-body.theme-soft-sage .bg-black/80,
-body.theme-soft-sage .bg-black/90,
-body.theme-soft-sage .bg-black/95 {
-  background-color: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+/* Hovers */
+body.theme-soft-sage .hover\:bg-white\/5:hover,body.theme-soft-sage .hover\:bg-white\/10:hover {
+  background-color: #D8D8DD !important;
 }
+body.theme-soft-sage .hover\:text-white:hover { color: #1A1A1A !important; }
+body.theme-soft-sage .hover\:border-electric-500\/40:hover { border-color: #C7C7CC !important; }
 
-body.theme-soft-sage .border-white/5,
-body.theme-soft-sage .border-white/10,
-body.theme-soft-sage .border-white/20,
-body.theme-soft-sage .border-white/25 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
+/* Hide glass card light beams in neumorphic */
+body.theme-soft-sage .from-transparent { --tw-gradient-from: transparent !important; }
+body.theme-soft-sage .via-white\/25 { --tw-gradient-via: transparent !important; }
+body.theme-soft-sage .via-white\/5 { --tw-gradient-via: transparent !important; }
+body.theme-soft-sage .to-transparent { --tw-gradient-to: transparent !important; }
 
-body.theme-soft-sage .hover\:bg-white\/5:hover,
-body.theme-soft-sage .hover\:bg-white\/10:hover {
-  background-color: rgba(0, 0, 0, 0.04) !important;
-}
-body.theme-soft-sage .hover\:text-white:hover {
-  color: #1D1D1F !important;
-}
+/* Gradient overrides → solid black buttons */
+body.theme-soft-sage .from-electric-600 { --tw-gradient-from: #000000 !important; }
+body.theme-soft-sage .to-electric-500 { --tw-gradient-to: #1A1A1A !important; }
+body.theme-soft-sage .text-black { color: #FFFFFF !important; }
 
-body.theme-soft-sage .hover\:border-electric-500\/40:hover {
-  border-color: rgba(0, 122, 255, 0.30) !important;
-}
-
-/* Glass card inner light beams → subtle in light mode */
-body.theme-soft-sage .from-transparent {
-  --tw-gradient-from: transparent !important;
-}
-body.theme-soft-sage .via-white\/25 {
-  --tw-gradient-via: rgba(0, 0, 0, 0.04) !important;
-}
-body.theme-soft-sage .via-white\/5 {
-  --tw-gradient-via: rgba(0, 0, 0, 0.02) !important;
-}
-
-/* Completion / progress → green */
-body.theme-soft-sage .bg-electric-500/10 {
-  background-color: rgba(34, 197, 94, 0.10) !important;
-}
-body.theme-soft-sage .from-electric-600 {
-  --tw-gradient-from: #16A34A !important;
-}
-body.theme-soft-sage .to-electric-400 {
-  --tw-gradient-to: #4ADE80 !important;
-}
-
-/* Auth modal special overrides */
-body.theme-soft-sage .bg-black\/80 {
-  background-color: rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Active sidebar nav item */
-body.theme-soft-sage .bg-electric-500\/15 {
-  background-color: rgba(0, 122, 255, 0.08) !important;
-}
+/* Progress → black neumorphic */
+body.theme-soft-sage .from-electric-600 { --tw-gradient-from: #1A1A1A !important; }
+body.theme-soft-sage .to-electric-400 { --tw-gradient-to: #6E6E73 !important; }
 
 /* Scrollbar */
-body.theme-soft-sage::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.03);
-}
-body.theme-soft-sage::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-}
-body.theme-soft-sage::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.20);
-}
+body.theme-soft-sage::-webkit-scrollbar-track { background: transparent; }
+body.theme-soft-sage::-webkit-scrollbar-thumb { background: #C7C7CC; border-radius: 9999px; }
+body.theme-soft-sage::-webkit-scrollbar-thumb:hover { background: #AEAEB2; }
 
-/* Drop shadow on logos → softer in light */
-body.theme-soft-sage .filter {
-  filter: none !important;
-}
-
-/* Gradient buttons override for light */
-body.theme-soft-sage .from-electric-600 {
-  --tw-gradient-from: #005EC4 !important;
-}
-body.theme-soft-sage .to-electric-500 {
-  --tw-gradient-to: #007AFF !important;
-}
-body.theme-soft-sage .text-black {
-  color: #FFFFFF !important;
-}
+/* Drop shadow on logos → remove in light */
+body.theme-soft-sage .filter { filter: none !important; }
 
 /* Shadow overrides */
-body.theme-soft-sage .shadow-glass-card {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
-}
-body.theme-soft-sage .shadow-2xl {
-  --tw-shadow: 0 4px 24px rgba(0, 0, 0, 0.08) !important;
-}
+body.theme-soft-sage .shadow-glass-card { box-shadow: 6px 6px 12px #C8C8CD, -6px -6px 12px #FFFFFF !important; }
+body.theme-soft-sage .shadow-2xl { --tw-shadow: 8px 8px 20px #C8C8CD, -8px -8px 20px #FFFFFF !important; }
 
-/* AMOLED scrollbar default → override in light */
-body.theme-soft-sage *::-webkit-scrollbar-track {
-  background: transparent;
-}
-body.theme-soft-sage *::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-  border-radius: 9999px;
-}
+/* Inner scrollbar */
+body.theme-soft-sage *::-webkit-scrollbar-track { background: transparent; }
+body.theme-soft-sage *::-webkit-scrollbar-thumb { background: #C7C7CC; border-radius: 9999px; }
 
 /* Theme 4: Neo Green (dark premium, bright green accent, minimal) */
 body.theme-neo-green {
@@ -326,12 +256,8 @@ body.theme-neo-green .glass-panel-hover:hover {
   box-shadow: 0 0 35px rgba(34, 197, 94, 0.12), 0 12px 40px 0 rgba(0, 0, 0, 0.8);
 }
 
-body.theme-neo-green .text-electric-400 {
-  color: #4ade80 !important;
-}
-body.theme-neo-green .text-electric-500 {
-  color: #22c55e !important;
-}
+body.theme-neo-green .text-electric-400 { color: #4ade80 !important; }
+body.theme-neo-green .text-electric-500 { color: #22c55e !important; }
 
 body.theme-neo-green .bg-electric-500/15,
 body.theme-neo-green .bg-electric-500/20 {
@@ -349,10 +275,8 @@ body.theme-neo-green .shadow-glow-sm {
 
 
 /* ===================================================
-   3. LIQUID GLASS EFFECT (ENHANCED)
+   3. LIQUID GLASS EFFECT (skip for light theme)
    =================================================== */
-
-/* High Quality Mode — but NOT for light theme */
 body.perf-high-quality:not(.theme-soft-sage) .glass-panel {
   backdrop-filter: blur(32px) saturate(210%);
   -webkit-backdrop-filter: blur(32px) saturate(210%);
@@ -370,7 +294,6 @@ body.perf-high-quality:not(.theme-soft-sage) .glass-nav {
   -webkit-backdrop-filter: blur(28px) saturate(200%);
 }
 
-/* Performance Mode */
 body.perf-performance:not(.theme-soft-sage) .glass-panel {
   backdrop-filter: blur(8px) saturate(120%);
   -webkit-backdrop-filter: blur(8px) saturate(120%);
@@ -415,7 +338,6 @@ body.perf-performance:not(.theme-soft-sage) .glass-nav {
   box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
 }
 
-/* Electric Glow Text & Border Utilities */
 .text-glow-electric {
   text-shadow: 0 0 16px rgba(0, 240, 255, 0.7);
 }
@@ -424,7 +346,6 @@ body.perf-performance:not(.theme-soft-sage) .glass-nav {
   box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
 }
 
-/* Background Studex Watermark */
 .watermark-bg {
   background-image: url('/watermark.png');
   background-repeat: no-repeat;
@@ -437,32 +358,10 @@ body.perf-performance:not(.theme-soft-sage) .glass-nav {
   filter: brightness(2.5) blur(0.5px);
 }
 
-/* Custom Sleek Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.8); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.4); }
 
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 240, 255, 0.4);
-}
-
-/* Performance optimization */
-.glass-panel {
-  will-change: transform;
-  contain: layout style;
-}
-
-body.perf-performance .glass-panel {
-  will-change: auto;
-  contain: layout;
-}
+.glass-panel { will-change: transform; contain: layout style; }
+body.perf-performance .glass-panel { will-change: auto; contain: layout; }
