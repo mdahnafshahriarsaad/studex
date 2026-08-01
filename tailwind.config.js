@@ -36,7 +36,7 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'Noto Sans Bengali', 'Hind Siliguri', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'Roboto', 'sans-serif'],
         bengali: ['Noto Sans Bengali', 'Hind Siliguri', 'sans-serif'],
       },
       boxShadow: {
