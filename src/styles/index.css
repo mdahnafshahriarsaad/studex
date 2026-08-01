@@ -340,8 +340,8 @@ body.perf-performance .glass-nav {
 }
 
 .watermark-glow {
-  opacity: 0.10;
-  filter: brightness(1.8) blur(1px);
+  opacity: 0.25;
+  filter: brightness(2.5) blur(0.5px);
 }
 
 /* Custom Sleek Scrollbar */

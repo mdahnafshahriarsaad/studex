@@ -40,7 +40,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ profile, settings, onOpe
   return (
     <div className="min-h-screen text-white flex flex-col md:flex-row relative overflow-x-hidden">
       {/* Background Studex Watermark — brightened with soft glow */}
-      <div className={`fixed inset-0 pointer-events-none z-0 flex items-center justify-center select-none ${isLightTheme ? 'opacity-8' : 'watermark-glow'}`}>
+      <div className={`fixed inset-0 pointer-events-none z-0 flex items-center justify-center select-none ${isLightTheme ? 'opacity-[0.12]' : 'watermark-glow'}`}>
         <img src="/watermark.png" alt="" className="w-[600px] h-[600px] object-contain" />
       </div>
 
