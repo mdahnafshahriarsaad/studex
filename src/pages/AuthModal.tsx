@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { AuthMode, ClassLevel } from '../types';
-import { registerAccountAsync, loginAccountAsync, resetPasswordAsync, verifyEmailAsync } from '../services/authService';
-import { Mail, Lock, User, GraduationCap, ArrowRight, CheckCircle2, ShieldCheck, KeyRound, Sparkles, AlertTriangle, ExternalLink, X } from 'lucide-react';
+import { registerAccountAsync, loginAccountAsync, verifyEmailAsync, verifyOtpAsync, resendOtpAsync, requestPasswordResetAsync, resetPasswordAsync } from '../services/authService';
+import { Mail, Lock, User, GraduationCap, ArrowRight, CheckCircle2, ShieldCheck, KeyRound, Sparkles, AlertTriangle, ExternalLink, X, RefreshCw, MailCheck } from 'lucide-react';
 
 interface AuthModalProps {
   onSuccess: () => void;
@@ -27,14 +27,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
   const [selectedClass, setSelectedClass] = useState<ClassLevel>('Class 9');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Email verification state
-  const [verificationPending, setVerificationPending] = useState(false);
+  // OTP verification state
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const [verificationPendingEmail, setVerificationPendingEmail] = useState<string | null>(null);
   const [verificationLink, setVerificationLink] = useState<string | null>(null);
+  const [otpResendCount, setOtpResendCount] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpLocked, setOtpLocked] = useState(false);
+  const [otpLockMessage, setOtpLockMessage] = useState('');
+
+  // Forgot password state
+  const [resetStep, setResetStep] = useState<'request' | 'enter-code'>('request');
+  const [resetOtp, setResetOtp] = useState(['', '', '', '', '', '']);
+  const [resetCooldown, setResetCooldown] = useState(0);
+  const [resetCodeSent, setResetCodeSent] = useState(false);
 
   // UI state
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const resetOtpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Check URL parameters for email verification token on load
   useEffect(() => {
@@ -47,9 +61,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
       verifyEmailAsync(token, paramEmail || undefined)
         .then((msg) => {
           setSuccessMsg(msg || 'Email verified successfully! You can now log in.');
-          setVerificationPending(false);
           setMode('login');
-          // Clean URL
           window.history.replaceState({}, document.title, window.location.pathname);
         })
         .catch((err) => {
@@ -58,6 +70,174 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
         .finally(() => setLoading(false));
     }
   }, []);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  // Reset cooldown timer
+  useEffect(() => {
+    if (resetCooldown <= 0) return;
+    const timer = setTimeout(() => setResetCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resetCooldown]);
+
+  // Auto-focus first OTP input when entering OTP mode
+  useEffect(() => {
+    if (mode === 'signup' && verificationPendingEmail) {
+      setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
+    }
+    if (mode === 'forgot-password' && resetStep === 'enter-code') {
+      setTimeout(() => resetOtpInputRefs.current[0]?.focus(), 100);
+    }
+  }, [verificationPendingEmail, resetStep]);
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/\d/.test(value) && value !== '') return;
+    const newOtp = [...otpCode];
+    newOtp[index] = value.slice(-1);
+    setOtpCode(newOtp);
+    if (value && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleResetOtpChange = (index: number, value: string) => {
+    if (!/\d/.test(value) && value !== '') return;
+    const newOtp = [...resetOtp];
+    newOtp[index] = value.slice(-1);
+    setResetOtp(newOtp);
+    if (value && index < 5) {
+      resetOtpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleResetOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !resetOtp[index] && index > 0) {
+      resetOtpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!verificationPendingEmail || resendCooldown > 0 || otpLocked) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await resendOtpAsync(verificationPendingEmail);
+      setOtpCode(['', '', '', '', '', '']);
+      setOtpResendCount(result.resendCount || 0);
+      setResendCooldown(60);
+      setSuccessMsg(result.message || 'New verification code sent!');
+      otpInputRefs.current[0]?.focus();
+    } catch (err: any) {
+      setError(err.message);
+      if (err.maxResendReached) {
+        setOtpLocked(true);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpVerify = async () => {
+    const otpStr = otpCode.join('');
+    if (otpStr.length !== 6) {
+      setError('Please enter the complete 6-digit code.');
+      return;
+    }
+    if (!verificationPendingEmail) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await verifyOtpAsync(verificationPendingEmail, otpStr);
+      if (result.verified) {
+        setSuccessMsg(result.message || 'Email verified! You can now sign in.');
+        setVerificationPendingEmail(null);
+        setVerificationLink(null);
+        setTimeout(() => {
+          setMode('login');
+          setSuccessMsg(null);
+        }, 1500);
+      }
+    } catch (err: any) {
+      setError(err.message);
+      if (err.locked) {
+        setOtpLocked(true);
+        setOtpLockMessage(err.message);
+      }
+      if (err.expired) {
+        setOtpCode(['', '', '', '', '', '']);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestReset = async () => {
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await requestPasswordResetAsync(email);
+      setResetCodeSent(true);
+      setResetStep('enter-code');
+      setResetCooldown(60);
+      setSuccessMsg('If an account exists with this email, a reset code has been sent.');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetWithOtp = async () => {
+    const otpStr = resetOtp.join('');
+    if (otpStr.length !== 6) {
+      setError('Please enter the complete 6-digit reset code.');
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError('New password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      await resetPasswordAsync(email, password, undefined, otpStr);
+      setSuccessMsg('Password reset successfully! Please log in with your new password.');
+      setTimeout(() => {
+        setMode('login');
+        setPassword('');
+        setConfirmPassword('');
+        setSuccessMsg(null);
+        setResetStep('request');
+        setResetCodeSent(false);
+        setResetOtp(['', '', '', '', '', '']);
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,11 +254,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
           throw new Error('Password must be at least 6 characters long.');
         }
         const res = await registerAccountAsync(email, password, name, selectedClass);
-        if (res.verificationLink) {
-          // Backend requires email verification
-          setVerificationPending(true);
-          setVerificationLink(res.verificationLink);
-          setSuccessMsg(res.message || 'Please verify your email before continuing.');
+        if (res.user && !res.user.isVerified) {
+          // Backend requires email verification - switch to OTP entry
+          setVerificationPendingEmail(email.trim().toLowerCase());
+          setSuccessMsg(res.message || 'A verification code has been sent to your email.');
+          setResendCooldown(60);
         } else {
           // Account created (auto-verified or local mode)
           setSuccessMsg(res.message || 'Account created! You can now sign in.');
@@ -96,27 +276,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
         setTimeout(() => {
           onSuccess();
         }, 600);
-      } else if (mode === 'forgot-password') {
-        if (!email.trim() || !password) {
-          throw new Error('Please enter your email and new password.');
-        }
-        if (password !== confirmPassword) {
-          throw new Error('Passwords do not match.');
-        }
-        await resetPasswordAsync(email, password);
-        setSuccessMsg('Password reset successfully! Please log in with your new password.');
-        setTimeout(() => {
-          setMode('login');
-          setPassword('');
-          setConfirmPassword('');
-          setSuccessMsg(null);
-        }, 1500);
       }
     } catch (err: any) {
       if (err.unverified) {
-        setVerificationPending(true);
+        setVerificationPendingEmail(err.email || email.trim().toLowerCase());
         if (err.verificationLink) setVerificationLink(err.verificationLink);
-        setError('Please verify your email before continuing.');
+        setError('Please verify your email before continuing. Enter the 6-digit code sent to your email.');
+        setResendCooldown(60);
       } else {
         setError(err.message || 'An error occurred. Please try again.');
       }
@@ -128,7 +294,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
   const handleManualVerifyClick = async () => {
     if (verificationLink) {
       window.open(verificationLink, '_blank');
+    } else if (verificationPendingEmail) {
+      // No link but have email - resend OTP
+      await handleResendOtp();
     }
+  };
+
+  const switchToLogin = () => {
+    setMode('login');
+    setError(null);
+    setSuccessMsg(null);
+    setVerificationPendingEmail(null);
+    setVerificationLink(null);
+    setOtpCode(['', '', '', '', '', '']);
+    setResetStep('request');
+    setResetCodeSent(false);
+    setResetOtp(['', '', '', '', '', '']);
+    setOtpLocked(false);
+  };
+
+  const switchToSignup = () => {
+    setMode('signup');
+    setError(null);
+    setSuccessMsg(null);
+    setVerificationPendingEmail(null);
+    setVerificationLink(null);
+    setOtpCode(['', '', '', '', '', '']);
+    setResetStep('request');
+    setResetCodeSent(false);
+    setResetOtp(['', '', '', '', '', '']);
+    setOtpLocked(false);
+  };
+
+  const switchToForgotPassword = () => {
+    setMode('forgot-password');
+    setError(null);
+    setSuccessMsg(null);
+    setPassword('');
+    setConfirmPassword('');
+    setResetStep('request');
+    setResetCodeSent(false);
+    setResetOtp(['', '', '', '', '', '']);
   };
 
   return (
@@ -178,12 +384,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
           <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 mb-6 text-xs font-semibold">
             <button
               type="button"
-              onClick={() => {
-                setMode('login');
-                setError(null);
-                setSuccessMsg(null);
-                setVerificationPending(false);
-              }}
+              onClick={switchToLogin}
               className={`flex-1 py-2 rounded-lg transition ${
                 mode === 'login'
                   ? 'bg-electric-500/20 text-electric-400 border border-electric-500/40 shadow-glow-sm'
@@ -194,12 +395,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
             </button>
             <button
               type="button"
-              onClick={() => {
-                setMode('signup');
-                setError(null);
-                setSuccessMsg(null);
-                setVerificationPending(false);
-              }}
+              onClick={switchToSignup}
               className={`flex-1 py-2 rounded-lg transition ${
                 mode === 'signup'
                   ? 'bg-electric-500/20 text-electric-400 border border-electric-500/40 shadow-glow-sm'
@@ -210,32 +406,100 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
             </button>
           </div>
 
-          {/* Verification Warning Alert */}
-          {verificationPending && (
+          {/* OTP Verification Panel */}
+          {verificationPendingEmail && mode === 'signup' && (
             <motion.div
-              initial={{ opacity: 0, y: -5 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 mb-4 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs text-center font-medium space-y-2"
+              className="mb-6"
             >
-              <div className="flex items-center justify-center gap-1.5 text-amber-400 font-bold">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Email Verification Required</span>
+              <div className="p-4 mb-4 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs text-center font-medium space-y-2">
+                <div className="flex items-center justify-center gap-1.5 text-amber-400 font-bold">
+                  <MailCheck className="w-4 h-4" />
+                  <span>Email Verification Required</span>
+                </div>
+                <p>A 6-digit verification code was sent to <span className="text-white font-semibold">{verificationPendingEmail}</span></p>
               </div>
-              <p>Please verify your email before continuing.</p>
+
+              {/* OTP Input Boxes */}
+              <div className="flex justify-center gap-2 mb-4">
+                {otpCode.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { otpInputRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                    disabled={otpLocked}
+                    className={`w-10 h-12 rounded-lg bg-white/5 border text-center text-lg font-bold text-white focus:outline-none transition ${
+                      otpLocked
+                        ? 'border-red-500/30 opacity-50'
+                        : 'border-white/20 focus:border-electric-400'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {otpLocked ? (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center">
+                  {otpLockMessage || 'Too many failed attempts. Please try again later.'}
+                </div>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={loading || otpCode.join('').length !== 6}
+                  icon={<ShieldCheck className="w-4 h-4" />}
+                  onClick={handleOtpVerify}
+                >
+                  {loading ? 'Verifying...' : 'Verify Email'}
+                </Button>
+              )}
+
+              {/* Resend OTP */}
+              <div className="mt-3 text-center">
+                {resendCooldown > 0 ? (
+                  <span className="text-xs text-neutral-500">Resend code in {resendCooldown}s</span>
+                ) : !otpLocked ? (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={loading}
+                    className="text-xs text-electric-400 hover:text-electric-300 font-medium flex items-center gap-1 mx-auto"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Resend Verification Code
+                  </button>
+                ) : null}
+              </div>
+
               {verificationLink && (
                 <button
+                  type="button"
                   onClick={handleManualVerifyClick}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-electric-500/20 hover:bg-electric-500/30 border border-electric-400 text-electric-400 font-semibold text-xs transition mt-1"
+                  className="w-full mt-2 text-[11px] text-neutral-500 hover:text-neutral-300 flex items-center justify-center gap-1 transition"
                 >
-                  <span>Click to Confirm Verification Link</span>
                   <ExternalLink className="w-3 h-3" />
+                  Or verify via email link
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={switchToLogin}
+                className="w-full mt-3 text-[11px] text-neutral-500 hover:text-white transition"
+              >
+                Already verified? Sign In
+              </button>
             </motion.div>
           )}
 
           {/* Standard Error & Success Alerts */}
-          {error && !verificationPending && (
+          {error && !verificationPendingEmail && (
             <motion.div
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
@@ -244,7 +508,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
               {error}
             </motion.div>
           )}
-          {successMsg && !verificationPending && (
+          {successMsg && !verificationPendingEmail && (
             <motion.div
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
@@ -255,140 +519,206 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, initia
             </motion.div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
-              <>
-                {/* Full Name */}
-                <div>
-                  <label className="block text-xs text-neutral-300 font-medium mb-1">Full Name</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Saad Rahman"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
-                    />
+          {/* Main Form (hidden when OTP panel is showing for signup) */}
+          {!(verificationPendingEmail && mode === 'signup') && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <>
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-xs text-neutral-300 font-medium mb-1">Full Name</label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Saad Rahman"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Academic Class */}
-                <div>
-                  <label className="block text-xs text-neutral-300 font-medium mb-1">Academic Class</label>
-                  <div className="relative">
-                    <GraduationCap className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
-                    <select
-                      value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value as ClassLevel)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-white/10 text-white text-xs focus:border-electric-400 focus:outline-none transition"
-                    >
-                      {CLASS_OPTIONS.map((c) => (
-                        <option key={c} value={c} className="bg-black text-white">
-                          {c}
-                        </option>
-                      ))}
-                    </select>
+                  {/* Academic Class */}
+                  <div>
+                    <label className="block text-xs text-neutral-300 font-medium mb-1">Academic Class</label>
+                    <div className="relative">
+                      <GraduationCap className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+                      <select
+                        value={selectedClass}
+                        onChange={(e) => setSelectedClass(e.target.value as ClassLevel)}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-neutral-900 border border-white/10 text-white text-xs focus:border-electric-400 focus:outline-none transition"
+                      >
+                        {CLASS_OPTIONS.map((c) => (
+                          <option key={c} value={c} className="bg-black text-white">
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
+                </>
+              )}
 
-            {/* Email Field */}
-            <div>
-              <label className="block text-xs text-neutral-300 font-medium mb-1">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@studex.edu"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-xs text-neutral-300 font-medium">
-                  {mode === 'forgot-password' ? 'New Password' : 'Password'}
-                </label>
-                {mode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMode('forgot-password');
-                      setError(null);
-                      setSuccessMsg(null);
-                    }}
-                    className="text-[11px] text-electric-400 hover:underline"
-                  >
-                    Forgot Password?
-                  </button>
-                )}
-              </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
-                />
-              </div>
-            </div>
-
-            {/* Confirm Password for Reset */}
-            {mode === 'forgot-password' && (
+              {/* Email Field */}
               <div>
-                <label className="block text-xs text-neutral-300 font-medium mb-1">Confirm New Password</label>
+                <label className="block text-xs text-neutral-300 font-medium mb-1">Email Address</label>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
                   <input
-                    type="password"
+                    type="email"
                     required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="student@studex.edu"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
                   />
                 </div>
               </div>
-            )}
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              disabled={loading}
-              icon={
-                mode === 'login' ? (
-                  <ArrowRight className="w-4 h-4" />
-                ) : mode === 'signup' ? (
-                  <Sparkles className="w-4 h-4" />
-                ) : (
-                  <ShieldCheck className="w-4 h-4" />
-                )
-              }
-            >
-              {loading
-                ? 'Processing...'
-                : mode === 'login'
-                ? 'Sign In to Studex'
-                : mode === 'signup'
-                ? 'Create Studex Account'
-                : 'Reset Password'}
-            </Button>
-          </form>
+              {/* Password Field */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs text-neutral-300 font-medium">
+                    {mode === 'forgot-password' ? 'New Password' : 'Password'}
+                  </label>
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={switchToForgotPassword}
+                      className="text-[11px] text-electric-400 hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={mode === 'forgot-password' ? 'Enter new password' : '••••••••'}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
+                  />
+                </div>
+              </div>
+
+              {/* Forgot Password Flow */}
+              {mode === 'forgot-password' && (
+                <>
+                  {/* Step 1: Request Reset */}
+                  {resetStep === 'request' && (
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      disabled={loading}
+                      icon={<Mail className="w-4 h-4" />}
+                      onClick={(e) => { e.preventDefault(); handleRequestReset(); }}
+                    >
+                      {loading ? 'Sending...' : 'Send Reset Code to Email'}
+                    </Button>
+                  )}
+
+                  {/* Step 2: Enter Reset OTP + New Password */}
+                  {resetStep === 'enter-code' && (
+                    <>
+                      {/* Reset OTP Input Boxes */}
+                      <div>
+                        <label className="block text-xs text-neutral-300 font-medium mb-2">Reset Code (from email)</label>
+                        <div className="flex justify-center gap-2">
+                          {resetOtp.map((digit, i) => (
+                            <input
+                              key={i}
+                              ref={(el) => { resetOtpInputRefs.current[i] = el; }}
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => handleResetOtpChange(i, e.target.value)}
+                              onKeyDown={(e) => handleResetOtpKeyDown(i, e)}
+                              className="w-10 h-12 rounded-lg bg-white/5 border border-white/20 text-center text-lg font-bold text-white focus:border-electric-400 focus:outline-none transition"
+                            />
+                          ))}
+                        </div>
+                        <div className="mt-2 text-center">
+                          {resetCooldown > 0 ? (
+                            <span className="text-[11px] text-neutral-500">Resend in {resetCooldown}s</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleRequestReset}
+                              disabled={loading}
+                              className="text-[11px] text-electric-400 hover:text-electric-300 font-medium flex items-center gap-1 mx-auto"
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              Resend Reset Code
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div>
+                        <label className="block text-xs text-neutral-300 font-medium mb-1">Confirm New Password</label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+                          <input
+                            type="password"
+                            required
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm new password"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:border-electric-400 focus:outline-none transition"
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        disabled={loading}
+                        icon={<ShieldCheck className="w-4 h-4" />}
+                        onClick={(e) => { e.preventDefault(); handleResetWithOtp(); }}
+                      >
+                        {loading ? 'Resetting...' : 'Reset Password'}
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* Submit Button (login & signup) */}
+              {mode !== 'forgot-password' && (
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={loading}
+                  icon={
+                    mode === 'login' ? (
+                      <ArrowRight className="w-4 h-4" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )
+                  }
+                >
+                  {loading
+                    ? 'Processing...'
+                    : mode === 'login'
+                    ? 'Sign In to Studex'
+                    : 'Create Studex Account'}
+                </Button>
+              )}
+            </form>
+          )}
 
           {/* Footer Sync Note */}
           <div className="mt-5 text-center text-[10px] text-neutral-400 flex items-center justify-center gap-1.5">

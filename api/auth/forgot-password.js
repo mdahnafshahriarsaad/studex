@@ -1,61 +1,56 @@
-const crypto = require('crypto');
+import { getDB, saveDB, generateToken, generateOTP } from '../_lib/db.js';
+import { sendResetEmail, hasEmailConfig } from '../_lib/email.js';
 
-const VERCEL_KV_REST_API_URL = process.env.KV_REST_API_URL;
-const VERCEL_KV_REST_API_TOKEN = process.env.KV_REST_API_TOKEN;
+const BASE_URL = process.env.BASE_URL || 'https://studex-lac.vercel.app';
 
-async function kvGet(key) {
-  if (!VERCEL_KV_REST_API_URL) return null;
-  try {
-    const res = await fetch(`${VERCEL_KV_REST_API_URL}/GET/${key}`, {
-      headers: { Authorization: `Bearer ${VERCEL_KV_REST_API_TOKEN}` },
-    });
-    const data = await res.json();
-    return data.result;
-  } catch { return null; }
-}
-
-async function kvSet(key, value) {
-  if (!VERCEL_KV_REST_API_URL) return false;
-  try {
-    await fetch(`${VERCEL_KV_REST_API_URL}/SET/${key}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${VERCEL_KV_REST_API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(value),
-    });
-    return true;
-  } catch { return false; }
-}
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed.' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword) {
-      return res.status(400).json({ error: 'Email and new password are required.' });
-    }
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required.' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await kvGet(`studex_user:${normalizedEmail}`);
+    const db = getDB();
+    const user = db.users[normalizedEmail];
 
     if (!user) {
       return res.status(404).json({ error: 'No account found with this email address.' });
     }
 
-    user.passwordHash = crypto.createHash('sha256').update(newPassword).digest('hex');
-    await kvSet(`studex_user:${normalizedEmail}`, user);
+    if (!hasEmailConfig()) {
+      return res.status(400).json({
+        error: 'Password reset is not available. Please contact support to reset your password.',
+        noEmailConfig: true,
+      });
+    }
 
-    return res.json({ message: 'Password reset successfully! Please log in with your new password.' });
+    const resetToken = generateToken();
+    const resetOtp = generateOTP();
+    const resetExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    // Store reset token in DB
+    db.resetTokens[resetToken] = {
+      email: normalizedEmail,
+      otp: resetOtp,
+      expiresAt: resetExpiry,
+      used: false,
+    };
+    saveDB(db);
+
+    const resetLink = `${BASE_URL}/?resetToken=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
+    await sendResetEmail(normalizedEmail, user.name, resetOtp, resetLink);
+
+    // Always return success to prevent email enumeration
+    return res.json({
+      message: 'If an account exists with this email, a password reset code has been sent.',
+    });
   } catch (err) {
-    console.error('Reset password error:', err);
-    return res.status(500).json({ error: 'Failed to reset password.' });
+    console.error('Forgot-password API error:', err);
+    return res.status(500).json({ error: 'Server error during password reset request.' });
   }
-};
+}

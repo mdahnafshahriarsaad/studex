@@ -119,7 +119,10 @@ export interface StudySessionRecord {
 export interface GuardianInfo {
   enabled: boolean;
   passcode: string;
+  guardianCode?: string;
   connectedGuardianName?: string;
+  guardianEmail?: string;
+  linkedAt?: string;
   dailyReportEnabled: boolean;
 }
 

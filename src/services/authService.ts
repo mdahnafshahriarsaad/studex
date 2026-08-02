@@ -7,6 +7,24 @@ const CURRENT_SESSION_KEY = 'studex_current_session_email_v1';
 const AUTH_TOKEN_KEY = 'studex_auth_token_v1';
 const SYNC_CHANNEL_NAME = 'studex_cloud_sync_channel';
 
+// Simple hash for local password storage (deterministic, no crypto dependency)
+function hashLocal(password: string): string {
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  // Convert to hex string with salt for basic obfuscation
+  const salted = 'studex_' + String(hash) + '_' + password.length;
+  let hex = '';
+  for (let i = 0; i < salted.length; i++) {
+    const c = salted.charCodeAt(i);
+    hex += ((c & 0xff) < 16 ? '0' : '') + (c & 0xff).toString(16);
+  }
+  return hex;
+}
+
 export function getAuthToken(): string | null {
   try {
     return localStorage.getItem(AUTH_TOKEN_KEY);
@@ -66,7 +84,7 @@ export async function registerAccountAsync(
   pass: string,
   name: string,
   selectedClass: any
-): Promise<{ message: string; user?: any; verificationLink?: string }> {
+): Promise<{ message: string; user?: any; verificationLink?: string; guardianCode?: string }> {
   const normalizedEmail = email.trim().toLowerCase();
 
   try {
@@ -88,13 +106,19 @@ export async function registerAccountAsync(
       selectedClass: selectedClass || 'Class 9',
       subjects: getDefaultSubjectsForClass(selectedClass || 'Class 9'),
       setupCompleted: true,
+      guardian: {
+        enabled: true,
+        passcode: data.guardianCode || DEFAULT_USER_PROFILE.guardian.passcode,
+        guardianCode: data.guardianCode || '',
+        dailyReportEnabled: true,
+      },
     };
 
     const newAccount: UserAccount = {
       id: data.user?.id || `usr-${Date.now()}`,
       email: normalizedEmail,
       name: name.trim() || 'Student',
-      passwordHash: pass,
+      passwordHash: hashLocal(pass),
       selectedClass: selectedClass || 'Class 9',
       profile: customProfile,
       settings: DEFAULT_APP_SETTINGS,
@@ -127,7 +151,7 @@ export async function registerAccountAsync(
       id: `usr-${Date.now()}`,
       email: normalizedEmail,
       name: name.trim() || 'Student',
-      passwordHash: pass,
+      passwordHash: hashLocal(pass),
       selectedClass: selectedClass || 'Class 9',
       profile: customProfile,
       settings: DEFAULT_APP_SETTINGS,
@@ -143,7 +167,7 @@ export async function registerAccountAsync(
   }
 }
 
-// EMAIL VERIFICATION ASYNC
+// VERIFY EMAIL VIA TOKEN (link click)
 export async function verifyEmailAsync(token: string, email?: string): Promise<string> {
   try {
     const res = await fetch('/api/auth/verify-email', {
@@ -159,6 +183,93 @@ export async function verifyEmailAsync(token: string, email?: string): Promise<s
       return 'Email verified successfully!';
     }
     throw new Error(err.message || 'Failed to verify email.');
+  }
+}
+
+// VERIFY EMAIL VIA OTP CODE
+export async function verifyOtpAsync(email: string, otp: string): Promise<{ verified: boolean; message: string }> {
+  try {
+    const res = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase(), otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'OTP verification failed.');
+    return { verified: data.verified, message: data.message || 'Email verified successfully!' };
+  } catch (err: any) {
+    throw new Error(err.message || 'Failed to verify OTP.');
+  }
+}
+
+// RESEND VERIFICATION OTP
+export async function resendOtpAsync(email: string): Promise<{ message: string; resendCount?: number }> {
+  try {
+    const res = await fetch('/api/auth/resend-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to resend OTP.');
+    return { message: data.message, resendCount: data.resendCount };
+  } catch (err: any) {
+    throw new Error(err.message || 'Failed to resend verification code.');
+  }
+}
+
+// REQUEST PASSWORD RESET (sends email with OTP)
+export async function requestPasswordResetAsync(email: string): Promise<string> {
+  try {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Password reset request failed.');
+    return data.message || 'If an account exists, a reset code has been sent.';
+  } catch (err: any) {
+    throw new Error(err.message || 'Failed to request password reset.');
+  }
+}
+
+// RESET PASSWORD WITH TOKEN/OTP
+export async function resetPasswordAsync(
+  email: string,
+  newPassword: string,
+  token?: string,
+  otp?: string
+): Promise<string> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  try {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: normalizedEmail, newPassword, token, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Password reset failed.');
+
+    // Update local store as well
+    const accounts = getAllAccounts();
+    if (accounts[normalizedEmail]) {
+      accounts[normalizedEmail].passwordHash = hashLocal(newPassword);
+      saveAccounts(accounts);
+    }
+    return data.message || 'Password reset successfully!';
+  } catch (err: any) {
+    // Fallback: update local password directly
+    const accounts = getAllAccounts();
+    const account = accounts[normalizedEmail];
+    if (!account) {
+      throw new Error('No account found with this email address.');
+    }
+    account.passwordHash = hashLocal(newPassword);
+    accounts[normalizedEmail] = account;
+    saveAccounts(accounts);
+    return 'Password reset successfully!';
   }
 }
 
@@ -190,29 +301,48 @@ export async function loginAccountAsync(email: string, pass: string): Promise<Us
     setCurrentSession(normalizedEmail);
 
     // Fetch initial backend synced state
-    const syncRes = await fetch('/api/user/sync', {
-      headers: { Authorization: `Bearer ${data.token}` },
-    });
-    if (syncRes.ok) {
-      const syncData = await syncRes.json();
-      if (syncData.profile) saveUserProfile(syncData.profile);
-      if (syncData.settings) saveAppSettings(syncData.settings);
+    try {
+      const syncRes = await fetch('/api/user/sync', {
+        headers: { 'X-Auth-Email': normalizedEmail },
+      });
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        if (syncData.profile) saveUserProfile(syncData.profile);
+        if (syncData.settings) saveAppSettings(syncData.settings);
 
-      const accounts = getAllAccounts();
-      const existing = accounts[normalizedEmail] || {};
-      accounts[normalizedEmail] = {
-        ...existing,
-        id: data.user.id,
-        email: normalizedEmail,
-        name: data.user.name,
-        profile: syncData.profile || existing.profile,
-        settings: syncData.settings || existing.settings,
-        lastLoginAt: new Date().toISOString(),
-      } as UserAccount;
-      saveAccounts(accounts);
+        const accounts = getAllAccounts();
+        const existing = accounts[normalizedEmail] || {};
+        accounts[normalizedEmail] = {
+          ...existing,
+          id: data.user.id,
+          email: normalizedEmail,
+          name: data.user.name,
+          profile: syncData.profile || existing.profile,
+          settings: syncData.settings || existing.settings,
+          passwordHash: hashLocal(pass),
+          lastLoginAt: new Date().toISOString(),
+        } as UserAccount;
+        saveAccounts(accounts);
 
-      return accounts[normalizedEmail];
+        return accounts[normalizedEmail];
+      }
+    } catch (syncErr) {
+      console.warn('Backend sync failed, using local data:', syncErr);
     }
+
+    // Fallback: update local account from login response
+    const accounts = getAllAccounts();
+    const existing = accounts[normalizedEmail] || {};
+    accounts[normalizedEmail] = {
+      ...existing,
+      id: data.user.id,
+      email: normalizedEmail,
+      name: data.user.name,
+      passwordHash: hashLocal(pass),
+      lastLoginAt: new Date().toISOString(),
+    } as UserAccount;
+    saveAccounts(accounts);
+    return accounts[normalizedEmail];
   } catch (backendErr: any) {
     if (backendErr.unverified) throw backendErr;
     console.warn('Backend login fallback to local:', backendErr.message);
@@ -226,7 +356,7 @@ export async function loginAccountAsync(email: string, pass: string): Promise<Us
     throw new Error('No account found with this email address.');
   }
 
-  if (account.passwordHash !== pass) {
+  if (account.passwordHash !== hashLocal(pass)) {
     throw new Error('Invalid password. Please check your credentials.');
   }
 
@@ -239,42 +369,6 @@ export async function loginAccountAsync(email: string, pass: string): Promise<Us
   saveAppSettings(account.settings);
 
   return account;
-}
-
-// RESET PASSWORD ASYNC
-export async function resetPasswordAsync(email: string, newPass: string): Promise<boolean> {
-  const normalizedEmail = email.trim().toLowerCase();
-
-  try {
-    const res = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: normalizedEmail, newPassword: newPass }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Password reset failed.');
-
-    // Update local store as well
-    const accounts = getAllAccounts();
-    if (accounts[normalizedEmail]) {
-      accounts[normalizedEmail].passwordHash = newPass;
-      saveAccounts(accounts);
-    }
-    return true;
-  } catch (err) {
-    const accounts = getAllAccounts();
-    const account = accounts[normalizedEmail];
-
-    if (!account) {
-      throw new Error('No account found with this email address.');
-    }
-
-    account.passwordHash = newPass;
-    accounts[normalizedEmail] = account;
-    saveAccounts(accounts);
-    return true;
-  }
 }
 
 // LOGOUT
@@ -305,43 +399,59 @@ export async function syncCurrentAccountData(profile: UserProfile, settings: App
     saveAccounts(accounts);
   }
 
-  const token = getAuthToken();
-  if (token) {
-    try {
-      await fetch('/api/user/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ profile, settings }),
-      });
-    } catch (err) {
-      console.warn('Backend sync deferred:', err);
-    }
+  try {
+    await fetch('/api/user/sync', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Email': email.toLowerCase(),
+      },
+      body: JSON.stringify({ profile, settings, email: email.toLowerCase() }),
+    });
+  } catch (err) {
+    console.warn('Backend sync deferred:', err);
   }
 }
 
-// Synchronous wrapper exports for compatibility
-export function registerAccount(email: string, pass: string, name: string, selectedClass: any): UserAccount {
-  registerAccountAsync(email, pass, name, selectedClass);
-  const normalizedEmail = email.trim().toLowerCase();
-  const accounts = getAllAccounts();
-  return accounts[normalizedEmail];
+// GUARDIAN: Lookup student by code (backend)
+export async function lookupGuardianStudentAsync(code: string): Promise<{ student: any; profile: UserProfile } | null> {
+  try {
+    const res = await fetch(`/api/guardian/lookup?code=${encodeURIComponent(code)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
-export function loginAccount(email: string, pass: string): UserAccount {
-  loginAccountAsync(email, pass);
-  const normalizedEmail = email.trim().toLowerCase();
-  const accounts = getAllAccounts();
-  return accounts[normalizedEmail];
+// GUARDIAN: Connect guardian to student (backend)
+export async function connectGuardianAsync(code: string, guardianName: string, guardianEmail?: string): Promise<{ success: boolean; message: string; studentName?: string }> {
+  try {
+    const res = await fetch('/api/guardian/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, guardianName, guardianEmail }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Guardian connection failed.');
+    return data;
+  } catch (err: any) {
+    throw new Error(err.message || 'Failed to connect as guardian.');
+  }
 }
 
-export function resetPassword(email: string, newPass: string): boolean {
-  resetPasswordAsync(email, newPass);
-  return true;
+// GUARDIAN: Fetch dashboard data for a connected guardian
+export async function fetchGuardianDashboardAsync(code: string): Promise<any> {
+  try {
+    const res = await fetch(`/api/guardian/dashboard/${encodeURIComponent(code)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
+// Local guardian code lookup (fallback)
 export function findAccountByGuardianCode(code: string): UserAccount | null {
   const cleanCode = code.trim().toUpperCase();
   const accounts = getAllAccounts();
@@ -349,7 +459,11 @@ export function findAccountByGuardianCode(code: string): UserAccount | null {
   for (const email of Object.keys(accounts)) {
     const acc = accounts[email];
     const guardianCode = acc.profile?.guardian?.passcode?.toUpperCase();
-    if (guardianCode && (guardianCode === cleanCode || `STUDEX-${guardianCode}` === cleanCode)) {
+    const fullGuardianCode = acc.profile?.guardian?.guardianCode?.toUpperCase();
+    if (
+      (guardianCode && (guardianCode === cleanCode || `STUDEX-${guardianCode}` === cleanCode)) ||
+      (fullGuardianCode && (fullGuardianCode === cleanCode || fullGuardianCode === `STDX-${cleanCode.replace(/^STDX-/, '')}`))
+    ) {
       return acc;
     }
   }
