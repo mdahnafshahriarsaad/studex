@@ -1,3 +1,19 @@
+/* Ensure Bengali font is loaded — self-hosted fallback */
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Noto Sans Bengali'), local('NotoSansBengali');
+}
+@font-face {
+  font-family: 'Hind Siliguri';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Hind Siliguri'), local('HindSiliguri');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,10 +21,19 @@
 /* ===================================================
    0. BANGLA FONT (outside @layer for max specificity)
    =================================================== */
+/* Critical: must be AFTER @tailwind utilities so it overrides all Tailwind layers */
 body.lang-bengali,
 body.lang-bengali *,
 body.lang-bengali *::before,
 body.lang-bengali *::after {
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Also set on #root to catch React root */
+body.lang-bengali #root,
+body.lang-bengali #root *,
+body.lang-bengali #root *::before,
+body.lang-bengali #root *::after {
   font-family: 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif !important;
 }
 

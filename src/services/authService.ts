@@ -287,6 +287,11 @@ export async function loginAccountAsync(email: string, pass: string): Promise<Us
     const data = await res.json();
 
     if (!res.ok) {
+      // If backend DB is empty (ephemeral /tmp), fall back to local auth
+      if (data.localFallback) {
+        console.warn('Backend DB empty, using local auth fallback.');
+        throw new Error('LOCAL_FALLBACK');
+      }
       if (data.unverified) {
         const errorMsg: any = new Error(data.error || 'Please verify your email before continuing.');
         errorMsg.unverified = true;
@@ -345,6 +350,7 @@ export async function loginAccountAsync(email: string, pass: string): Promise<Us
     return accounts[normalizedEmail];
   } catch (backendErr: any) {
     if (backendErr.unverified) throw backendErr;
+    // LOCAL_FALLBACK or any other backend error → use localStorage auth
     console.warn('Backend login fallback to local:', backendErr.message);
   }
 

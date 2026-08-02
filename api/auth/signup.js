@@ -87,30 +87,32 @@ export default async function handler(req, res) {
     db.guardianCodes[guardianPasscode] = normalizedEmail;
     db.guardianCodes[guardianCode] = normalizedEmail;
 
-    // Auto-verify if no email config
-    const emailConfigured = hasEmailConfig();
-    if (!emailConfigured) {
-      newUser.isVerified = true;
-      delete newUser.verificationOtp;
-      delete newUser.otpExpiresAt;
-    }
+    // Always auto-verify for now (Vercel /tmp DB is ephemeral — email verification
+    // would be lost on cold start. When persistent DB is added, re-enable email flow.)
+    newUser.isVerified = true;
+    delete newUser.verificationOtp;
+    delete newUser.otpExpiresAt;
 
     saveDB(db);
 
+    // Try sending verification email (best-effort, don't block)
+    const emailConfigured = hasEmailConfig();
     if (emailConfigured) {
-      const verificationLink = `${BASE_URL}/?verifyToken=${verificationToken}&email=${encodeURIComponent(normalizedEmail)}`;
-      await sendVerificationEmail(normalizedEmail, name.trim(), otpCode, verificationLink);
+      try {
+        const verificationLink = `${BASE_URL}/?verifyToken=${verificationToken}&email=${encodeURIComponent(normalizedEmail)}`;
+        await sendVerificationEmail(normalizedEmail, name.trim(), otpCode, verificationLink);
+      } catch (emailErr) {
+        console.warn('Email send failed (non-blocking):', emailErr.message);
+      }
     }
 
     const response = {
-      message: emailConfigured
-        ? 'Account created! Please check your email to verify your account before logging in.'
-        : 'Account created and auto-verified (no email config). You can log in now.',
+      message: 'Account created successfully! You can now sign in.',
       user: {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        isVerified: newUser.isVerified,
+        isVerified: true,
       },
       guardianCode,
     };

@@ -18,7 +18,12 @@ export default async function handler(req, res) {
     const user = db.users[normalizedEmail];
 
     if (!user) {
-      return res.status(404).json({ error: 'No account found with this email address.' });
+      // /tmp DB is ephemeral on Vercel — return a special status so frontend
+      // falls back to localStorage authentication
+      return res.status(404).json({ 
+        error: 'No account found on server. Using local authentication.',
+        localFallback: true,
+      });
     }
 
     // Only compare hashed passwords — no plaintext fallback
