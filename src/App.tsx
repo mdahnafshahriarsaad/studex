@@ -19,6 +19,20 @@ import { AboutPage } from './pages/AboutPage';
 import { AuthModal } from './pages/AuthModal';
 import { CalendarPage } from './pages/CalendarPage';
 
+// Synchronous: apply Bangla font class BEFORE React renders (prevents flash)
+if (typeof window !== 'undefined') {
+  try {
+    const raw = localStorage.getItem('studex-settings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.language === 'Bengali') {
+        document.body.classList.add('lang-bengali');
+      }
+      document.documentElement.setAttribute('data-lang', parsed.language || 'English');
+    }
+  } catch (e) { /* ignore */ }
+}
+
 export const App: React.FC = () => {
   const {
     profile,

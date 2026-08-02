@@ -30,9 +30,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ profile, settings, onOpe
 
     const perfClass = perf === 'Performance Mode' ? 'perf-performance' : 'perf-high-quality';
 
-    const langClass = settings?.language === 'Bengali' ? 'lang-bengali' : '';
     document.documentElement.lang = settings?.language === 'Bengali' ? 'bn' : 'en';
-    document.body.className = `${themeClass} ${perfClass} ${langClass}`.trim();
+    // Use classList.add/remove to avoid overwriting lang-bengali set by App.tsx
+    const body = document.body;
+    body.classList.remove('theme-amoled', 'theme-ocean', 'theme-soft-sage', 'theme-neo-green');
+    body.classList.add(themeClass);
+    body.classList.remove('perf-high-quality', 'perf-performance');
+    body.classList.add(perfClass);
+    if (settings?.language === 'Bengali') {
+      body.classList.add('lang-bengali');
+    } else {
+      body.classList.remove('lang-bengali');
+    }
   }, [settings?.theme, settings?.performanceMode, settings?.language]);
 
   const isLightTheme = settings?.theme === 'Light Mode';
