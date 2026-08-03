@@ -1,40 +1,32 @@
-/* Ensure Bengali font is loaded — self-hosted fallback */
-@font-face {
-  font-family: 'Noto Sans Bengali';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: local('Noto Sans Bengali'), local('NotoSansBengali');
-}
-@font-face {
-  font-family: 'Hind Siliguri';
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: local('Hind Siliguri'), local('HindSiliguri');
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ===================================================
-   0. BANGLA FONT (outside @layer for max specificity)
+   BANGLA FONT OVERRIDE (must be AFTER tailwind utilities output)
+   These are unlayered so they beat all @layer rules.
+   !important ensures they beat any inline Tailwind utility.
    =================================================== */
-/* Critical: must be AFTER @tailwind utilities so it overrides all Tailwind layers */
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Noto Sans Bengali'), local('NotoSansBengali-Regular');
+}
+@font-face {
+  font-family: 'Hind Siliguri';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Hind Siliguri'), local('HindSiliguri-Regular');
+}
+
 body.lang-bengali,
 body.lang-bengali *,
 body.lang-bengali *::before,
 body.lang-bengali *::after {
-  font-family: 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif !important;
-}
-
-/* Also set on #root to catch React root */
-body.lang-bengali #root,
-body.lang-bengali #root *,
-body.lang-bengali #root *::before,
-body.lang-bengali #root *::after {
-  font-family: 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif !important;
 }
 
 /* ===================================================
@@ -112,7 +104,6 @@ body.theme-soft-sage {
   color: #1A1A1A;
 }
 
-/* Cards — neumorphic raised surface */
 body.theme-soft-sage .glass-panel {
   background: #E8E8ED;
   border: none !important;
@@ -128,7 +119,6 @@ body.theme-soft-sage .glass-panel-hover:hover {
   transform: translateY(-1px);
 }
 
-/* Inputs — neumorphic inset (pressed) */
 body.theme-soft-sage .glass-input {
   background: #E8E8ED;
   border: none !important;
@@ -143,7 +133,6 @@ body.theme-soft-sage .glass-input:focus {
   box-shadow: inset 4px 4px 8px #BEBEC3, inset -4px -4px 8px #FFFFFF;
 }
 
-/* Nav — neumorphic raised bar */
 body.theme-soft-sage .glass-nav {
   background: #E8E8ED;
   border: none !important;
@@ -152,31 +141,26 @@ body.theme-soft-sage .glass-nav {
   -webkit-backdrop-filter: none !important;
 }
 
-/* Headings */
 body.theme-soft-sage h1,body.theme-soft-sage h2,body.theme-soft-sage h3,body.theme-soft-sage h4,body.theme-soft-sage h5,body.theme-soft-sage strong {
   color: #1A1A1A !important;
 }
 
-/* Muted text — three levels */
 body.theme-soft-sage .text-neutral-300 { color: #3A3A3C !important; }
 body.theme-soft-sage .text-neutral-400 { color: #6E6E73 !important; }
 body.theme-soft-sage .text-neutral-500 { color: #8E8E93 !important; }
 body.theme-soft-sage .text-neutral-600 { color: #AEAEB2 !important; }
 
-/* Accent → pure black (neumorphic CTA) */
 body.theme-soft-sage .text-electric-400 { color: #1A1A1A !important; }
 body.theme-soft-sage .text-electric-500 { color: #000000 !important; }
 body.theme-soft-sage .text-electric-600 { color: #000000 !important; }
 
-/* Active/selected backgrounds → inset neumorphic */
 body.theme-soft-sage .bg-electric-500\/10,
 body.theme-soft-sage .bg-electric-500\/15,
 body.theme-soft-sage .bg-electric-500\/20 {
- background-color: #D8D8DD !important;
+  background-color: #D8D8DD !important;
   box-shadow: inset 2px 2px 4px #C8C8CD, inset -2px -2px 4px #FFFFFF;
 }
 
-/* Borders → neumorphic subtle */
 body.theme-soft-sage .border-electric-500\/30,
 body.theme-soft-sage .border-electric-500\/40 {
   border-color: #D1D1D6 !important;
@@ -186,7 +170,6 @@ body.theme-soft-sage .shadow-glow-sm {
   box-shadow: inset 2px 2px 5px #C8C8CD, inset -2px -2px 5px #FFFFFF !important;
 }
 
-/* ===== Override all dark-mode utility classes ===== */
 body.theme-soft-sage .text-white { color: #1A1A1A !important; }
 body.theme-soft-sage .text-neutral-200 { color: #3A3A3C !important; }
 
@@ -195,7 +178,6 @@ body.theme-soft-sage .bg-white\/10 { background-color: transparent !important; }
 body.theme-soft-sage .bg-white\/20 { background-color: #D8D8DD !important; }
 body.theme-soft-sage .bg-white\/25 { background-color: #D8D8DD !important; }
 
-/* Modal/overlay backgrounds */
 body.theme-soft-sage .bg-black\/80,
 body.theme-soft-sage .bg-black\/90,
 body.theme-soft-sage .bg-black\/95 {
@@ -204,46 +186,35 @@ body.theme-soft-sage .bg-black\/95 {
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* Borders */
 body.theme-soft-sage .border-white\/5,body.theme-soft-sage .border-white\/10,body.theme-soft-sage .border-white\/20,body.theme-soft-sage .border-white\/25 {
   border-color: #D1D1D6 !important;
 }
 
-/* Hovers */
 body.theme-soft-sage .hover\:bg-white\/5:hover,body.theme-soft-sage .hover\:bg-white\/10:hover {
   background-color: #D8D8DD !important;
 }
 body.theme-soft-sage .hover\:text-white:hover { color: #1A1A1A !important; }
 body.theme-soft-sage .hover\:border-electric-500\/40:hover { border-color: #C7C7CC !important; }
 
-/* Hide glass card light beams in neumorphic */
 body.theme-soft-sage .from-transparent { --tw-gradient-from: transparent !important; }
 body.theme-soft-sage .via-white\/25 { --tw-gradient-via: transparent !important; }
 body.theme-soft-sage .via-white\/5 { --tw-gradient-via: transparent !important; }
 body.theme-soft-sage .to-transparent { --tw-gradient-to: transparent !important; }
 
-/* Gradient overrides → solid black buttons */
-body.theme-soft-sage .from-electric-600 { --tw-gradient-from: #000000 !important; }
+body.theme-soft-sage .from-electric-600 { --tw-gradient-from: #1A1A1A !important; }
 body.theme-soft-sage .to-electric-500 { --tw-gradient-to: #1A1A1A !important; }
+body.theme-soft-sage .to-electric-400 { --tw-gradient-to: #6E6E73 !important; }
 body.theme-soft-sage .text-black { color: #FFFFFF !important; }
 
-/* Progress → black neumorphic */
-body.theme-soft-sage .from-electric-600 { --tw-gradient-from: #1A1A1A !important; }
-body.theme-soft-sage .to-electric-400 { --tw-gradient-to: #6E6E73 !important; }
-
-/* Scrollbar */
 body.theme-soft-sage::-webkit-scrollbar-track { background: transparent; }
 body.theme-soft-sage::-webkit-scrollbar-thumb { background: #C7C7CC; border-radius: 9999px; }
 body.theme-soft-sage::-webkit-scrollbar-thumb:hover { background: #AEAEB2; }
 
-/* Drop shadow on logos → remove in light */
 body.theme-soft-sage .filter { filter: none !important; }
 
-/* Shadow overrides */
 body.theme-soft-sage .shadow-glass-card { box-shadow: 6px 6px 12px #C8C8CD, -6px -6px 12px #FFFFFF !important; }
 body.theme-soft-sage .shadow-2xl { --tw-shadow: 8px 8px 20px #C8C8CD, -8px -8px 20px #FFFFFF !important; }
 
-/* Inner scrollbar */
 body.theme-soft-sage *::-webkit-scrollbar-track { background: transparent; }
 body.theme-soft-sage *::-webkit-scrollbar-thumb { background: #C7C7CC; border-radius: 9999px; }
 

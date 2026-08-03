@@ -19,35 +19,40 @@ export default async function handler(req, res) {
     const user = db.users[normalizedEmail];
 
     if (!user) {
-      return res.status(404).json({ error: 'No account found with this email address.' });
-    }
-
-    if (!hasEmailConfig()) {
-      return res.status(400).json({
-        error: 'Password reset is not available. Please contact support to reset your password.',
-        noEmailConfig: true,
+      // Don't reveal whether account exists
+      return res.json({
+        message: 'If an account exists with this email, a password reset code has been sent.',
       });
     }
 
+    const emailConfigured = hasEmailConfig();
     const resetToken = generateToken();
     const resetOtp = generateOTP();
-    const resetExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+    const resetExpiry = Date.now() + 15 * 60 * 1000;
 
-    // Store reset token in DB
     db.resetTokens[resetToken] = {
       email: normalizedEmail,
-      otp: resetOtp,
+      otp: emailConfigured ? resetOtp : '000000',
       expiresAt: resetExpiry,
       used: false,
+      autoVerified: !emailConfigured,
     };
     saveDB(db);
 
-    const resetLink = `${BASE_URL}/?resetToken=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
-    await sendResetEmail(normalizedEmail, user.name, resetOtp, resetLink);
+    if (emailConfigured) {
+      try {
+        const resetLink = `${BASE_URL}/?resetToken=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
+        await sendResetEmail(normalizedEmail, user.name, resetOtp, resetLink);
+      } catch (emailErr) {
+        console.warn('Reset email send failed:', emailErr.message);
+      }
+    }
 
-    // Always return success to prevent email enumeration
     return res.json({
-      message: 'If an account exists with this email, a password reset code has been sent.',
+      message: emailConfigured
+        ? 'If an account exists with this email, a password reset code has been sent.'
+        : 'Password reset code: 000000 (no email config — use this code to reset).',
+      noEmailCode: !emailConfigured ? '000000' : undefined,
     });
   } catch (err) {
     console.error('Forgot-password API error:', err);

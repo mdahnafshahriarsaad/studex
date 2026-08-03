@@ -595,7 +595,31 @@ export const translations: Record<Language, Record<string, string>> = {
   },
 };
 
-export function t(key: string, lang: Language = 'English'): string {
-  const dict = translations[lang] || translations.English;
+export function t(key: string, lang?: Language): string {
+  // Auto-detect language from settings if not provided
+  let currentLang = lang;
+  if (!currentLang && typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('studex_app_settings_v3');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        currentLang = parsed.language || 'English';
+      }
+    } catch { /* ignore */ }
+  }
+  const dict = translations[currentLang || 'English'];
   return dict[key] || translations.English[key] || key;
+}
+
+/** Get current language from settings (for passing to components) */
+export function getCurrentLanguage(): Language {
+  if (typeof window === 'undefined') return 'English';
+  try {
+    const raw = localStorage.getItem('studex_app_settings_v3');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed.language === 'Bengali' ? 'Bengali' : 'English';
+    }
+  } catch { /* ignore */ }
+  return 'English';
 }

@@ -18,25 +18,35 @@ export default async function handler(req, res) {
     const db = getDB();
 
     if (db.users[normalizedEmail]) {
-      return res.status(400).json({ error: 'An account with this email already exists.' });
+      // If user already exists and is verified, reject
+      if (db.users[normalizedEmail].isVerified) {
+        return res.status(400).json({ error: 'An account with this email already exists.' });
+      }
+      // If unverified, allow re-registration (update)
     }
 
+    const emailConfigured = hasEmailConfig();
     const verificationToken = generateToken();
     const otpCode = generateOTP();
 
     const newUser = {
-      id: `usr-${Date.now()}`,
+      id: db.users[normalizedEmail]?.id || `usr-${Date.now()}`,
       name: name.trim(),
       email: normalizedEmail,
       passwordHash: hashPassword(password),
-      isVerified: false,
+      isVerified: false, // Start unverified
       verificationToken,
-      verificationOtp: otpCode,
-      otpExpiresAt: Date.now() + 5 * 60 * 1000,
+      verificationOtp: emailConfigured ? otpCode : null,
+      otpExpiresAt: emailConfigured ? Date.now() + 5 * 60 * 1000 : null,
       otpResendCount: 0,
-      createdAt: new Date().toISOString(),
+      createdAt: db.users[normalizedEmail]?.createdAt || new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
     };
+
+    // Auto-verify only if no email config (no way to send OTP)
+    if (!emailConfigured) {
+      newUser.isVerified = true;
+    }
 
     const guardianPasscode = Math.floor(1000 + Math.random() * 9000).toString();
     const guardianCode = generateGuardianCode();
@@ -55,13 +65,8 @@ export default async function handler(req, res) {
       revisions: [],
       missedTargetRecovery: null,
       gamification: {
-        xp: 150,
-        level: 1,
-        levelTitle: 'Beginner',
-        currentStreak: 1,
-        longestStreak: 1,
-        totalStudyMinutes: 45,
-        achievements: [],
+        xp: 150, level: 1, levelTitle: 'Beginner',
+        currentStreak: 1, longestStreak: 1, totalStudyMinutes: 45, achievements: [],
       },
       studyHistory: [],
       guardian: {
@@ -87,32 +92,39 @@ export default async function handler(req, res) {
     db.guardianCodes[guardianPasscode] = normalizedEmail;
     db.guardianCodes[guardianCode] = normalizedEmail;
 
-    // Always auto-verify for now (Vercel /tmp DB is ephemeral — email verification
-    // would be lost on cold start. When persistent DB is added, re-enable email flow.)
-    newUser.isVerified = true;
-    delete newUser.verificationOtp;
-    delete newUser.otpExpiresAt;
-
     saveDB(db);
 
-    // Try sending verification email (best-effort, don't block)
-    const emailConfigured = hasEmailConfig();
+    // Send verification email if configured
     if (emailConfigured) {
       try {
         const verificationLink = `${BASE_URL}/?verifyToken=${verificationToken}&email=${encodeURIComponent(normalizedEmail)}`;
-        await sendVerificationEmail(normalizedEmail, name.trim(), otpCode, verificationLink);
+        const sent = await sendVerificationEmail(normalizedEmail, name.trim(), otpCode, verificationLink);
+        if (!sent) {
+          // Email failed to send — auto-verify so user isn't stuck
+          console.warn('Email send failed, auto-verifying user');
+          newUser.isVerified = true;
+          newUser.verificationOtp = null;
+          newUser.otpExpiresAt = null;
+          saveDB(db);
+        }
       } catch (emailErr) {
-        console.warn('Email send failed (non-blocking):', emailErr.message);
+        console.warn('Email send error, auto-verifying:', emailErr.message);
+        newUser.isVerified = true;
+        newUser.verificationOtp = null;
+        newUser.otpExpiresAt = null;
+        saveDB(db);
       }
     }
 
     const response = {
-      message: 'Account created successfully! You can now sign in.',
+      message: newUser.isVerified
+        ? 'Account created successfully! You can now sign in.'
+        : 'Account created! A verification code has been sent to your email.',
       user: {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        isVerified: true,
+        isVerified: newUser.isVerified,
       },
       guardianCode,
     };

@@ -2,7 +2,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import crypto from 'crypto';
 
-const DB_DIR = '/tmp/studex';
+// Use Vercel persistent storage if available, otherwise /tmp
+const DB_DIR = process.env.DB_DIR || '/tmp/studex';
 const DB_FILE = join(DB_DIR, 'db.json');
 
 const EMPTY_DB = { users: {}, profiles: {}, guardianCodes: {}, guardianLinks: {}, resetTokens: {} };
