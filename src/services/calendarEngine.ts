@@ -742,3 +742,141 @@ export function formatDisplayDate(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SYLLABUS COMPLETION FORECAST
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface SyllabusForecast {
+  /** Expected % of total syllabus completed by selectedDate */
+  expectedCompletionPercent: number;
+  /** Total pages across all subjects */
+  totalSyllabusPages: number;
+  /** Pages already completed (from sessions) */
+  pagesAlreadyCompleted: number;
+  /** Pages planned between today and selectedDate (from future plans) */
+  pagesPlannedToSelected: number;
+  /** Remaining pages after selected date */
+  pagesAfterSelected: number;
+  /** Current effective daily page target (accounts for adaptive redistribution) */
+  currentDailyTarget: number;
+  /** Days from today to selected date */
+  daysToSelected: number;
+  /** Days from today to exam */
+  daysToExam: number;
+  /** Missed days count (past days with plans but no sessions) */
+  missedDays: number;
+  /** Pages redistributed due to misses */
+  redistributedPages: number;
+}
+
+export function computeSyllabusForecast(
+  plans: StudyPlan[],
+  sessions: StudySession[],
+  selectedDate: string,
+  totalSyllabusPages: number,
+  examDate: string
+): SyllabusForecast {
+  const today = getTodayStr();
+
+  // Pages already completed (from all sessions)
+  const pagesAlreadyCompleted = sessions.reduce((a, s) => a + s.pagesCompleted, 0);
+
+  // Pages planned from today up to and including selectedDate
+  const pagesPlannedToSelected = plans
+    .filter(p => p.date > today && p.date <= selectedDate && p.status !== 'cancelled' && p.status !== 'completed')
+    .reduce((a, p) => a + Math.max(0, p.pageEnd - p.pageStart + 1), 0);
+
+  // Pages planned after selectedDate (up to exam)
+  const pagesAfterSelected = plans
+    .filter(p => p.date > selectedDate && p.date <= examDate && p.status !== 'cancelled' && p.status !== 'completed')
+    .reduce((a, p) => a + Math.max(0, p.pageEnd - p.pageStart + 1), 0);
+
+  // Missed days: past days that had plans but no completed sessions
+  const plannedDates = new Set(plans.filter(p => p.date < today && p.date >= addDays(today, -365)).map(p => p.date));
+  const studiedDates = new Set(sessions.map(s => s.date));
+  let missedDays = 0;
+  for (const d of plannedDates) {
+    if (!studiedDates.has(d)) missedDays++;
+  }
+
+  // Redistributed pages: sum of extra pages added by adaptive algorithm
+  // We detect this by comparing original page ranges (if auto-generated) vs current
+  // Simpler: count pages in future plans that exceed what even distribution would give
+  const daysToSelected = Math.max(0, daysBetween(today, selectedDate));
+  const daysToExam = Math.max(1, daysBetween(today, examDate));
+  const remainingPages = Math.max(0, totalSyllabusPages - pagesAlreadyCompleted);
+  const baseDailyTarget = Math.ceil(remainingPages / daysToExam);
+
+  // Current effective daily target from actual future plans
+  const futureDaysSet = new Set(plans.filter(p => p.date > today && p.date <= examDate && p.status !== 'cancelled' && p.status !== 'completed').map(p => p.date));
+  const futureDaysCount = Math.max(1, futureDaysSet.size);
+  const totalFuturePlannedPages = plans
+    .filter(p => p.date > today && p.date <= examDate && p.status !== 'cancelled' && p.status !== 'completed')
+    .reduce((a, p) => a + Math.max(0, p.pageEnd - p.pageStart + 1), 0);
+  const currentDailyTarget = Math.ceil(totalFuturePlannedPages / futureDaysCount);
+
+  // Redistributed pages = how much the current daily target exceeds the base
+  const redistributedPages = Math.max(0, (currentDailyTarget - baseDailyTarget) * futureDaysCount);
+
+  // Expected completion by selected date
+  // = pages already done + pages planned to reach that date
+  // But if the student follows the schedule perfectly, they complete all planned pages
+  const expectedPagesBySelected = pagesAlreadyCompleted + pagesPlannedToSelected;
+  const expectedCompletionPercent = totalSyllabusPages > 0
+    ? Math.min(100, Math.round((expectedPagesBySelected / totalSyllabusPages) * 100))
+    : 0;
+
+  return {
+    expectedCompletionPercent,
+    totalSyllabusPages,
+    pagesAlreadyCompleted,
+    pagesPlannedToSelected,
+    pagesAfterSelected,
+    currentDailyTarget,
+    daysToSelected,
+    daysToExam,
+    missedDays,
+    redistributedPages,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOOLTIP DATA FOR CALENDAR CELLS
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface DayTooltipData {
+  completionPercent: number;
+  studyHours: number;
+  pagesPlanned: number;
+  pagesCompleted: number;
+  taskCount: number;
+  completedTasks: number;
+  missedTasks: number;
+}
+
+export function computeDayTooltip(
+  plans: StudyPlan[],
+  sessions: StudySession[],
+  dateStr: string
+): DayTooltipData {
+  const dayPlans = plans.filter(p => p.date === dateStr);
+  const daySessions = sessions.filter(s => s.date === dateStr);
+  const pagesPlanned = dayPlans.reduce((a, p) => a + Math.max(0, p.pageEnd - p.pageStart + 1), 0);
+  const pagesCompleted = daySessions.reduce((a, s) => a + s.pagesCompleted, 0);
+  const studyHours = Math.round(daySessions.reduce((a, s) => a + s.minutesStudied, 0) / 60 * 10) / 10;
+  const completedTasks = daySessions.length;
+  const missedTasks = dayPlans.filter(p =>
+    p.status === 'missed' || (!daySessions.some(s => s.planId === p.id) && p.date < getTodayStr() && p.status !== 'completed' && p.status !== 'cancelled')
+  ).length;
+
+  return {
+    completionPercent: pagesPlanned > 0 ? Math.round((pagesCompleted / pagesPlanned) * 100) : (daySessions.length > 0 ? 100 : 0),
+    studyHours,
+    pagesPlanned,
+    pagesCompleted,
+    taskCount: dayPlans.length,
+    completedTasks,
+    missedTasks,
+  };
+}

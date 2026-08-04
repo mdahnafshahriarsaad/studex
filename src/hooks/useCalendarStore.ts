@@ -5,7 +5,8 @@ import {
   formatDate, getTodayStr, addDays, computeDayStatus, computeDayData,
   generateAutoStudyPlan, adaptFuturePlans, calculateStudyStreak,
   generateHeatmapData, computeMonthlySummary, predictExamReadiness,
-  searchPlans, filterPlans, HeatmapDay, MonthlySummary, ExamPrediction, AutoPlanResult
+  searchPlans, filterPlans, HeatmapDay, MonthlySummary, ExamPrediction, AutoPlanResult,
+  computeSyllabusForecast, computeDayTooltip, SyllabusForecast, DayTooltipData
 } from '../services/calendarEngine';
 
 const PLANS_KEY = 'studex_calendar_plans_v2';
@@ -279,6 +280,22 @@ export function useCalendarStore() {
     return days;
   }, [plans, sessions]);
 
+  // ─── SYLLABUS FORECAST ───────────────────────────────────────────────
+
+  const getSyllabusForecast = useCallback((
+    selectedDate: string,
+    totalSyllabusPages: number,
+    examDate: string
+  ): SyllabusForecast => {
+    return computeSyllabusForecast(plans, sessions, selectedDate, totalSyllabusPages, examDate);
+  }, [plans, sessions]);
+
+  // ─── TOOLTIP DATA ───────────────────────────────────────────────────
+
+  const getDayTooltip = useCallback((dateStr: string): DayTooltipData => {
+    return computeDayTooltip(plans, sessions, dateStr);
+  }, [plans, sessions]);
+
   return {
     plans,
     sessions,
@@ -310,6 +327,8 @@ export function useCalendarStore() {
     filter,
     getFutureDays,
     getPastDays,
+    getSyllabusForecast,
+    getDayTooltip,
     useDayData,
   };
 }

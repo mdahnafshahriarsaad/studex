@@ -14,10 +14,10 @@ import { useCalendarStore, getTodayStr, addDays, useDayData } from '../hooks/use
 import { StudyPlan, StudySession, StudyPriority, CalendarView, StudyStatus, TaskStatus } from '../types/calendar';
 import { useUserStore } from '../hooks/useUserStore';
 import { generateAutoStudyPlan } from '../services/calendarEngine';
-import { HeatmapDay, MonthlySummary } from '../services/calendarEngine';
+import { HeatmapDay, MonthlySummary, SyllabusForecast, DayTooltipData } from '../services/calendarEngine';
 import { GlassCard } from '../components/ui/GlassCard';
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// --─ helpers ----------------------------------------------------------------─
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -72,7 +72,26 @@ function formatDisplayDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-// ─── Circular Progress Ring ─────────────────────────────────────────────
+// --─ Tooltip ----------------------------------------------------------
+const CalendarTooltip: React.FC<{ data: DayTooltipData; dateStr: string; visible: boolean }> = ({ data, dateStr, visible }) => {
+  if (!visible) return null;
+  const d = new Date(dateStr + 'T00:00:00');
+  return (
+    <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-xl bg-black/95 border border-white/15 shadow-2xl backdrop-blur-xl pointer-events-none min-w-[160px]">
+      <p className="text-[10px] font-bold text-white mb-1.5">{d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+      <div className="space-y-1 text-[9px]">
+        <div className="flex justify-between"><span className="text-neutral-400">Completion</span><span className="text-white font-semibold">{data.completionPercent}%</span></div>
+        <div className="flex justify-between"><span className="text-neutral-400">Study Time</span><span className="text-white font-semibold">{data.studyHours}h</span></div>
+        <div className="flex justify-between"><span className="text-neutral-400">Pages</span><span className="text-white font-semibold">{data.pagesCompleted}/{data.pagesPlanned}</span></div>
+        <div className="flex justify-between"><span className="text-neutral-400">Tasks</span><span className="text-white font-semibold">{data.completedTasks}/{data.taskCount}</span></div>
+        {data.missedTasks > 0 && <div className="flex justify-between"><span className="text-rose-400">Missed</span><span className="text-rose-400 font-semibold">{data.missedTasks}</span></div>}
+      </div>
+      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 rotate-45 bg-black/95 border-r border-b border-white/15" />
+    </div>
+  );
+};
+
+// --─ Circular Progress Ring --------------------------------------------─
 const CircularProgress: React.FC<{ percent: number; size?: number; strokeWidth?: number; color?: string }> = ({
   percent, size = 64, strokeWidth = 5, color = '#00F0FF'
 }) => {
@@ -93,7 +112,7 @@ const CircularProgress: React.FC<{ percent: number; size?: number; strokeWidth?:
   );
 };
 
-// ─── Plan Form ────────────────────────────────────────────────────────────
+// --─ Plan Form ------------------------------------------------------------
 interface PlanFormProps {
   initialDate: string;
   subjects: { id: string; name: string; chapters: { id: string; name: string; startPage: number; endPage: number; difficulty: string; completed: boolean; completedPages?: number }[] }[];
@@ -227,7 +246,7 @@ const PlanForm: React.FC<PlanFormProps> = ({ initialDate, subjects, onSave, onCl
   );
 };
 
-// ─── Session Form ───────────────────────────────────────────────────────
+// --─ Session Form ------------------------------------------------------─
 interface SessionFormProps {
   initialDate: string;
   subjects: string[];
@@ -294,7 +313,7 @@ const SessionForm: React.FC<SessionFormProps> = ({ initialDate, subjects, onSave
   );
 };
 
-// ─── Missed Task Modal ────────────────────────────────────────────────────
+// --─ Missed Task Modal ----------------------------------------------------
 interface MissedModalProps {
   plans: StudyPlan[];
   onAction: (planId: string, action: 'tomorrow' | 'reschedule' | 'cancel' | 'redistribute', newDate?: string) => void;
@@ -340,7 +359,7 @@ const MissedModal: React.FC<MissedModalProps> = ({ plans, onAction, onClose }) =
   );
 };
 
-// ─── Status Icon ─────────────────────────────────────────────────────────
+// --─ Status Icon --------------------------------------------------------─
 const StatusIcon: React.FC<{ status: StudyStatus; size?: number }> = ({ status, size = 16 }) => {
   if (status === 'completed') return <CheckCircle2 style={{width:size,height:size}} className="text-emerald-400" />;
   if (status === 'partial') return <MinusCircle style={{width:size,height:size}} className="text-amber-400" />;
@@ -349,7 +368,7 @@ const StatusIcon: React.FC<{ status: StudyStatus; size?: number }> = ({ status, 
   return <Circle style={{width:size,height:size}} className="text-white/15" />;
 };
 
-// ─── Heatmap Component ────────────────────────────────────────────────────
+// --─ Heatmap Component ----------------------------------------------------
 interface HeatmapProps { data: HeatmapDay[]; onDayClick: (date: string) => void; }
 const Heatmap: React.FC<HeatmapProps> = ({ data, onDayClick }) => {
   // Pad start so first week always begins on Sunday (day 0)
@@ -406,16 +425,18 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, onDayClick }) => {
   );
 };
 
-// ─── Month View ───────────────────────────────────────────────────────────
+// --─ Month View ----------------------------------------------------------─
 interface MonthViewProps {
   year: number; month: number; selectedDate: string; onSelectDate: (d: string) => void;
   getStatus: (d: string) => StudyStatus; getPlans: (d: string) => StudyPlan[];
   dragOverDate: string | null; onDragOver: (d: string) => void;
   onDrop: (d: string) => void; onDragLeave: () => void; draggingPlanId: string | null;
+  getTooltip: (d: string) => DayTooltipData;
 }
 
-const MonthView: React.FC<MonthViewProps> = ({ year, month, selectedDate, onSelectDate, getStatus, getPlans, dragOverDate, onDragOver, onDrop, onDragLeave, draggingPlanId }) => {
+const MonthView: React.FC<MonthViewProps> = ({ year, month, selectedDate, onSelectDate, getStatus, getPlans, dragOverDate, onDragOver, onDrop, onDragLeave, draggingPlanId, getTooltip }) => {
   const today = getTodayStr();
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
   const cells: (string | null)[] = Array(firstDay).fill(null);
@@ -441,6 +462,8 @@ const MonthView: React.FC<MonthViewProps> = ({ year, month, selectedDate, onSele
           return (
             <motion.button key={dateStr} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
               onClick={() => onSelectDate(dateStr)}
+              onMouseEnter={() => setHoveredDate(dateStr)}
+              onMouseLeave={() => setHoveredDate(null)}
               onDragOver={e => { e.preventDefault(); onDragOver(dateStr); }}
               onDrop={() => onDrop(dateStr)} onDragLeave={onDragLeave}
               className={`relative aspect-square flex flex-col items-center justify-center rounded-2xl text-sm font-semibold transition-all duration-200 select-none
@@ -450,6 +473,7 @@ const MonthView: React.FC<MonthViewProps> = ({ year, month, selectedDate, onSele
                 ${isPast && !isSelected && !isToday ? 'text-neutral-400' : !isPast && !isSelected ? 'text-white' : ''}
                 ${isDragTarget ? 'border-2 border-blue-400 bg-blue-500/20 scale-105' : ''}
               `}>
+              {hoveredDate === dateStr && <CalendarTooltip data={getTooltip(dateStr)} dateStr={dateStr} visible={true} />}
               {isToday && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-electric-400 shadow-[0_0_8px_rgba(0,240,255,0.8)] border border-black" />}
               <span className={`text-xs md:text-sm ${isToday && !isSelected ? 'text-electric-300 font-bold' : ''}`}>{dayNum}</span>
               {planCount > 0 && <span className="text-[8px] text-neutral-500 leading-none">{planCount}</span>}
@@ -462,7 +486,7 @@ const MonthView: React.FC<MonthViewProps> = ({ year, month, selectedDate, onSele
   );
 };
 
-// ─── Week View ────────────────────────────────────────────────────────────
+// --─ Week View ------------------------------------------------------------
 interface WeekViewProps {
   weekStart: string; selectedDate: string; onSelectDate: (d: string) => void;
   getStatus: (d: string) => StudyStatus; getPlans: (d: string) => StudyPlan[];
@@ -523,7 +547,7 @@ const WeekView: React.FC<WeekViewProps> = ({ weekStart, selectedDate, onSelectDa
   );
 };
 
-// ─── Day View ─────────────────────────────────────────────────────────────
+// --─ Day View ------------------------------------------------------------─
 interface DayViewProps {
   dateStr: string; plans: StudyPlan[]; sessions: StudySession[];
   onDragStart: (planId: string) => void; onCompleteTask: (plan: StudyPlan) => void;
@@ -617,7 +641,8 @@ const DayViewComponent: React.FC<DayViewProps> = ({ dateStr, plans, sessions, on
   );
 };
 
-// ─── Day Detail Panel ─────────────────────────────────────────────────────
+
+// ─── Day Detail Panel ────────────────────────────────────────────
 interface DayPanelProps {
   dateStr: string;
   subjects: { id: string; name: string; chapters: { id: string; name: string; startPage: number; endPage: number; difficulty: string; completed: boolean; completedPages?: number }[] }[];
@@ -631,116 +656,176 @@ const DayPanel: React.FC<DayPanelProps> = ({ dateStr, subjects, store, onAddPlan
   const today = getTodayStr();
   const isPast = dateStr < today;
   const isToday = dateStr === today;
+  const isFuture = dateStr > today;
   const dayData = useDayData(store.plans, store.sessions, dateStr);
+  const completedTasks = dayData.sessions.length;
+  const totalTasks = dayData.plans.length;
+  const remainingTasks = totalTasks - completedTasks;
+  const timeRemaining = Math.max(0, dayData.totalPlannedMinutes - dayData.totalStudiedMinutes);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex-shrink-0 mb-3">
+    <div className="flex flex-col h-full overflow-y-auto pr-0.5">
+      <div className="flex-shrink-0 mb-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-neutral-400 font-medium uppercase tracking-widest mb-0.5">{isToday ? 'Today' : isPast ? 'History' : 'Upcoming'}</p>
-            <h3 className="text-sm font-bold text-white leading-tight">{new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric'})}</h3>
+            <p className="text-[10px] text-neutral-400 font-medium uppercase tracking-widest mb-0.5">{isToday ? 'Today' : isPast ? 'Study History' : 'Study Plan'}</p>
+            <h3 className="text-sm font-bold text-white leading-tight">{new Date(dateStr+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</h3>
           </div>
           <div className="flex items-center gap-1.5">
             <StatusIcon status={dayData.status} size={16} />
             <span className={`text-[10px] font-semibold ${dayData.status==='completed'?'text-emerald-400':dayData.status==='partial'?'text-amber-400':dayData.status==='missed'?'text-rose-400':dayData.status==='planned'?'text-blue-400':'text-neutral-500'}`}>{STATUS_LABEL[dayData.status]}</span>
           </div>
         </div>
-
-        {/* Summary stats with circular progress */}
-        {(dayData.plans.length > 0 || dayData.sessions.length > 0) && (
-          <div className="mt-3 flex items-center gap-3">
-            <CircularProgress percent={dayData.completionPercent} size={56} strokeWidth={4} color={dayData.status === 'completed' ? '#34d399' : dayData.status === 'partial' ? '#fbbf24' : '#00F0FF'} />
-            <div className="grid grid-cols-2 gap-1.5 flex-1">
-              <div className="text-center p-1.5 rounded-xl bg-white/5"><p className="text-sm font-bold text-white">{dayData.totalPlannedPages}</p><p className="text-[9px] text-neutral-400">Pages</p></div>
-              <div className="text-center p-1.5 rounded-xl bg-white/5"><p className="text-sm font-bold text-white">{formatMinutes(dayData.totalPlannedMinutes||dayData.totalStudiedMinutes)}</p><p className="text-[9px] text-neutral-400">Time</p></div>
-              <div className="text-center p-1.5 rounded-xl bg-white/5"><p className="text-sm font-bold text-white">{dayData.plans.length}</p><p className="text-[9px] text-neutral-400">Tasks</p></div>
-              <div className="text-center p-1.5 rounded-xl bg-white/5"><p className="text-sm font-bold text-emerald-400">{dayData.totalCompletedPages}</p><p className="text-[9px] text-neutral-400">Done</p></div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-2 mb-3 flex-shrink-0">
-        <button onClick={onAddPlan} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-semibold hover:bg-blue-500/25 transition"><Plus className="w-3.5 h-3.5" />Add</button>
+      <div className="flex gap-2 mb-4 flex-shrink-0">
+        <button onClick={onAddPlan} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-semibold hover:bg-blue-500/25 transition"><Plus className="w-3.5 h-3.5" />Add Task</button>
         {(isToday || isPast) && (
-          <button onClick={onLogSession} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/25 transition"><Check className="w-3.5 h-3.5" />Log</button>
+          <button onClick={onLogSession} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/25 transition"><Check className="w-3.5 h-3.5" />Log Session</button>
         )}
       </div>
 
-      {/* Plans / Sessions list */}
-      <div className="flex-1 overflow-y-auto space-y-2 pr-0.5">
-        {dayData.plans.length > 0 && (
-          <div>
-            <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest mb-1.5">Study Tasks</p>
-            <div className="space-y-1.5">
-              {dayData.plans.map(plan => {
-                const isDone = plan.status === 'completed';
-                const linked = dayData.sessions.find(s => s.planId === plan.id);
-                return (
-                  <div key={plan.id} className={`p-2.5 rounded-xl border transition group ${isDone || linked ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-white/8 bg-white/3 hover:border-white/15'}`}>
-                    <div className="flex items-start justify-between gap-1.5">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className={`text-[9px] font-bold px-1 py-0.5 rounded border ${PRIORITY_COLORS[plan.priority]}`}>{plan.priority}</span>
-                          <span className="text-xs font-bold text-white truncate">{plan.subjectName}</span>
-                        </div>
-                        <p className="text-[11px] text-neutral-300">{plan.chapterName}</p>
-                        <div className="flex items-center gap-2 mt-1 text-[9px] text-neutral-400">
-                          <span>pp. {plan.pageStart}–{plan.pageEnd}</span><span>·</span><span>{formatMinutes(plan.estimatedMinutes)}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-                        <button onClick={() => onEditPlan(plan)} className="p-1 rounded-lg bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition"><Edit3 className="w-3 h-3" /></button>
-                        <button onClick={() => store.duplicatePlan(plan.id)} className="p-1 rounded-lg bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition"><Copy className="w-3 h-3" /></button>
-                        <button onClick={() => store.deletePlan(plan.id)} className="p-1 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 transition"><Trash2 className="w-3 h-3" /></button>
-                      </div>
+      {isFuture && dayData.plans.length > 0 && (
+        <div className="space-y-2 mb-4">
+          <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest">Planned Study</p>
+          {dayData.plans.map(plan => {
+            const pageCount = Math.max(0, plan.pageEnd - plan.pageStart + 1);
+            return (
+              <div key={plan.id} className="p-3 rounded-xl border border-blue-500/15 bg-blue-500/5 group">
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white mb-0.5">{plan.subjectName}</p>
+                    <p className="text-[11px] text-neutral-300 mb-1.5">{plan.chapterName}</p>
+                    <div className="space-y-1 text-[10px]">
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Pages:</span><span className="text-white">{plan.pageStart}-{plan.pageEnd} ({pageCount} pages)</span></div>
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Estimated Time:</span><span className="text-white">{formatMinutes(plan.estimatedMinutes)}</span></div>
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Priority:</span><span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[plan.priority].split(' ')[2] || ''}`} /><span className="text-white">{plan.priority}</span></div>
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Status:</span><span className="text-blue-400">To Do</span></div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        {dayData.sessions.length > 0 && (
-          <div>
-            <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest mb-1.5">Completed</p>
-            <div className="space-y-1.5">
-              {dayData.sessions.map(sess => (
-                <div key={sess.id} className="p-2.5 rounded-xl border border-emerald-500/15 bg-emerald-500/5 group">
-                  <div className="flex items-start justify-between gap-1.5">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                        <span className="text-xs font-bold text-white truncate">{sess.subjectName}</span>
-                      </div>
-                      <p className="text-[11px] text-neutral-300">{sess.chapterName}</p>
-                      <div className="flex items-center gap-2 mt-1 text-[9px] text-neutral-400">
-                        <span>{sess.pagesCompleted} pages</span><span>·</span><span>{formatMinutes(sess.minutesStudied)}</span>
-                      </div>
-                      {sess.notes && <p className="text-[9px] text-neutral-500 mt-1 italic">"{sess.notes}"</p>}
-                    </div>
-                    <button onClick={() => store.deleteSession(sess.id)} className="p-1 rounded-lg bg-rose-500/15 text-rose-400 opacity-0 group-hover:opacity-100 hover:bg-rose-500/25 transition"><Trash2 className="w-3 h-3" /></button>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+                    <button onClick={() => onEditPlan(plan)} className="p-1 rounded-lg bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition"><Edit3 className="w-3 h-3" /></button>
+                    <button onClick={() => store.duplicatePlan(plan.id)} className="p-1 rounded-lg bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition"><Copy className="w-3 h-3" /></button>
+                    <button onClick={() => store.deletePlan(plan.id)} className="p-1 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 transition"><Trash2 className="w-3 h-3" /></button>
                   </div>
                 </div>
-              ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isToday && dayData.plans.length > 0 && (
+        <div className="space-y-2 mb-4">
+          <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest">{isToday ? "Today's Study Plan" : 'Study Plan'}</p>
+          {dayData.plans.map(plan => {
+            const isDone = plan.status === 'completed';
+            const linked = dayData.sessions.find(s => s.planId === plan.id);
+            const done = isDone || !!linked;
+            const pageCount = Math.max(0, plan.pageEnd - plan.pageStart + 1);
+            return (
+              <div key={plan.id} className={`p-3 rounded-xl border transition group ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-white/8 bg-white/3 hover:border-white/15'}`}>
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white mb-0.5">{plan.subjectName}</p>
+                    <p className="text-[11px] text-neutral-300 mb-1.5">{plan.chapterName}</p>
+                    <div className="space-y-1 text-[10px]">
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Pages:</span><span className="text-white">{plan.pageStart}-{plan.pageEnd} ({pageCount} pages)</span></div>
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Estimated Time:</span><span className="text-white">{formatMinutes(plan.estimatedMinutes)}</span></div>
+                      <div className="flex items-center gap-2"><span className="text-neutral-500">Status:</span><span className={done ? 'text-emerald-400' : 'text-blue-400'}>{done ? 'Completed' : 'To Do'}</span></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {done ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <Circle className="w-5 h-5 text-blue-400" />}
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+                      <button onClick={() => onEditPlan(plan)} className="p-1 rounded-lg bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10 transition"><Edit3 className="w-3 h-3" /></button>
+                      <button onClick={() => store.deletePlan(plan.id)} className="p-1 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 transition"><Trash2 className="w-3 h-3" /></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isPast && dayData.sessions.length > 0 && (
+        <div className="space-y-2 mb-4">
+          <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest">Completed Sessions</p>
+          {dayData.sessions.map(sess => (
+            <div key={sess.id} className="p-3 rounded-xl border border-emerald-500/15 bg-emerald-500/5 group">
+              <div className="flex items-start justify-between gap-1.5">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /><p className="text-xs font-bold text-white">{sess.subjectName}</p></div>
+                  <p className="text-[11px] text-neutral-300 mb-1.5">{sess.chapterName}</p>
+                  <div className="space-y-1 text-[10px]">
+                    <div className="flex items-center gap-2"><span className="text-neutral-500">Pages Finished:</span><span className="text-white">{sess.pagesCompleted} (pp. {sess.pageStart}-{sess.pageEnd})</span></div>
+                    <div className="flex items-center gap-2"><span className="text-neutral-500">Time Studied:</span><span className="text-white">{formatMinutes(sess.minutesStudied)}</span></div>
+                    <div className="flex items-center gap-2"><span className="text-neutral-500">Completion:</span><span className="text-emerald-400">100%</span></div>
+                    {sess.notes && <div className="flex items-start gap-2 mt-1"><span className="text-neutral-500">Notes:</span><span className="text-neutral-300 italic">{sess.notes}</span></div>}
+                  </div>
+                </div>
+                <button onClick={() => store.deleteSession(sess.id)} className="p-1 rounded-lg bg-rose-500/15 text-rose-400 opacity-0 group-hover:opacity-100 hover:bg-rose-500/25 transition"><Trash2 className="w-3 h-3" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isPast && dayData.plans.filter(p => p.status === 'missed' || (!dayData.sessions.some(s => s.planId === p.id) && p.status !== 'completed')).length > 0 && (
+        <div className="space-y-2 mb-4">
+          <p className="text-[9px] text-rose-400 font-semibold uppercase tracking-widest">Missed Tasks</p>
+          {dayData.plans.filter(p => p.status === 'missed' || (!dayData.sessions.some(s => s.planId === p.id) && p.status !== 'completed')).map(plan => (
+            <div key={plan.id} className="p-3 rounded-xl border border-rose-500/20 bg-rose-500/5">
+              <p className="text-xs font-bold text-white">{plan.subjectName}</p>
+              <p className="text-[11px] text-neutral-300">{plan.chapterName}</p>
+              <p className="text-[10px] text-rose-400 mt-1">pp. {plan.pageStart}-{plan.pageEnd} - {formatMinutes(plan.estimatedMinutes)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {dayData.plans.length === 0 && dayData.sessions.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-8 text-center mb-4">
+          <CalendarDays className="w-8 h-8 text-neutral-600 mb-2" />
+          <p className="text-xs text-neutral-500">{isPast ? 'No study recorded on this day' : isToday ? 'No study planned today' : 'Nothing planned for this day'}</p>
+        </div>
+      )}
+
+      {(dayData.plans.length > 0 || dayData.sessions.length > 0) && (
+        <div className="p-3 rounded-xl bg-white/5 border border-white/8 mb-4 flex-shrink-0">
+          <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest mb-3">Daily Progress</p>
+          <div className="flex items-center gap-4">
+            <CircularProgress percent={dayData.completionPercent} size={64} strokeWidth={5} color={dayData.status === 'completed' ? '#34d399' : dayData.status === 'partial' ? '#fbbf24' : '#00F0FF'} />
+            <div className="flex-1 space-y-2">
+              <div className="flex justify-between text-[10px]"><span className="text-neutral-400">Tasks Completed</span><span className="text-white font-bold">{completedTasks} / {totalTasks}</span></div>
+              <div className="flex justify-between text-[10px]"><span className="text-neutral-400">Pages Completed</span><span className="text-white font-bold">{dayData.totalCompletedPages} / {dayData.totalPlannedPages}</span></div>
+              <div className="flex justify-between text-[10px]"><span className="text-neutral-400">Study Time</span><span className="text-white font-bold">{formatMinutes(dayData.totalStudiedMinutes || dayData.totalPlannedMinutes)}</span></div>
+              <div className="flex justify-between text-[10px]"><span className="text-neutral-400">Completion</span><span className={`font-bold ${dayData.completionPercent >= 100 ? 'text-emerald-400' : 'text-electric-400'}`}>{dayData.completionPercent}%</span></div>
             </div>
           </div>
-        )}
-        {dayData.plans.length === 0 && dayData.sessions.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <CalendarDays className="w-8 h-8 text-neutral-600 mb-2" />
-            <p className="text-xs text-neutral-500">{isPast ? 'No study on this day' : isToday ? 'No study planned today' : 'Nothing planned yet'}</p>
+          <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${dayData.completionPercent >= 100 ? 'bg-emerald-400' : dayData.completionPercent >= 50 ? 'bg-gradient-to-r from-electric-600 to-electric-400' : 'bg-amber-400'}`} style={{width: Math.min(100, dayData.completionPercent) + '%'}} />
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {isToday && (
+        <div className="p-3 rounded-xl bg-white/5 border border-white/8 flex-shrink-0">
+          <p className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest mb-3">Today's Target</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2 rounded-lg bg-white/5 text-center"><p className="text-base font-bold text-rose-400">{remainingTasks}</p><p className="text-[9px] text-neutral-400">Remaining</p></div>
+            <div className="p-2 rounded-lg bg-white/5 text-center"><p className="text-base font-bold text-emerald-400">{completedTasks}</p><p className="text-[9px] text-neutral-400">Completed</p></div>
+            <div className="p-2 rounded-lg bg-white/5 text-center"><p className="text-base font-bold text-orange-400">{dayData.studyStreak}</p><p className="text-[9px] text-neutral-400">Day Streak</p></div>
+            <div className="p-2 rounded-lg bg-white/5 text-center"><p className="text-base font-bold text-white">{formatMinutes(timeRemaining)}</p><p className="text-[9px] text-neutral-400">Time Left</p></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-// ─── Monthly Summary Card ─────────────────────────────────────────────────
+// --─ Monthly Summary Card ------------------------------------------------─
 interface MonthlySummaryCardProps { summary: MonthlySummary; }
 const MonthlySummaryCard: React.FC<MonthlySummaryCardProps> = ({ summary }) => (
   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -753,7 +838,7 @@ const MonthlySummaryCard: React.FC<MonthlySummaryCardProps> = ({ summary }) => (
   </div>
 );
 
-// ─── Main CalendarPage ────────────────────────────────────────────────────
+// --─ Main CalendarPage ----------------------------------------------------
 export const CalendarPage: React.FC = () => {
   const { profile, settings } = useUserStore();
   const store = useCalendarStore();
@@ -781,7 +866,6 @@ export const CalendarPage: React.FC = () => {
   const [showMonthlySummary, setShowMonthlySummary] = useState(false);
 
   // Panel state: 'detail' | 'heatmap' | 'future' | 'summary'
-  const [rightPanel, setRightPanel] = useState<'detail' | 'heatmap' | 'future' | 'summary'>('detail');
 
   // Drag state
   const [draggingPlanId, setDraggingPlanId] = useState<string | null>(null);
@@ -812,6 +896,14 @@ export const CalendarPage: React.FC = () => {
   const totalRemaining = useMemo(() => profile.subjects.reduce((s,sub)=>s+sub.remainingPages,0), [profile.subjects]);
   const examPrediction = useMemo(() => store.getExamPrediction(profile.examInfo?.date || '', totalRemaining), [store.plans, store.sessions, profile.examInfo, totalRemaining]);
 
+  // Syllabus forecast for selected date
+  const totalSyllabusPages = useMemo(() => profile.subjects.reduce((s,sub) => s + sub.totalPages, 0), [profile.subjects]);
+  const syllabusForecast = useMemo(() => {
+    if (!profile.examInfo?.date || totalSyllabusPages <= 0) return null;
+    return store.getSyllabusForecast(selectedDate, totalSyllabusPages, profile.examInfo.date);
+  }, [selectedDate, store.plans, store.sessions, profile.examInfo, totalSyllabusPages]);
+
+
   // Navigation
   const navigate = useCallback((dir: 1 | -1) => {
     setSlideDir(dir);
@@ -830,7 +922,6 @@ export const CalendarPage: React.FC = () => {
     setSelectedDate(dateStr);
     const d = new Date(dateStr + 'T00:00:00');
     setCurrentYear(d.getFullYear()); setCurrentMonth(d.getMonth());
-    setRightPanel('detail');
   }, []);
 
   // Drag & drop
@@ -896,7 +987,7 @@ export const CalendarPage: React.FC = () => {
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full min-h-screen select-none">
-      {/* ── Left: Calendar ─────────────────────────────────── */}
+      {/* -- Left: Calendar ----------------------------------─ */}
       <div className="lg:w-[55%] xl:w-[58%] flex-shrink-0 flex flex-col gap-3 min-w-0">
         {/* Top bar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -995,7 +1086,7 @@ export const CalendarPage: React.FC = () => {
         <div className="flex-1 glass-panel rounded-3xl border border-white/10 p-4 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div key={`${view}-${currentMonth}-${currentYear}-${weekStart}-${selectedDate}`} initial={{opacity:0,x:slideDir*30}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-slideDir*30}} transition={{duration:0.25,ease:[0.4,0,0.2,1]}} className="h-full flex flex-col">
-              {view === 'month' && <MonthView year={currentYear} month={currentMonth} selectedDate={selectedDate} onSelectDate={handleSelectDate} getStatus={store.getStatusForDate} getPlans={store.getPlansForDate} dragOverDate={dragOverDate} draggingPlanId={draggingPlanId} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} />}
+              {view === 'month' && <MonthView year={currentYear} month={currentMonth} selectedDate={selectedDate} onSelectDate={handleSelectDate} getStatus={store.getStatusForDate} getPlans={store.getPlansForDate} dragOverDate={dragOverDate} draggingPlanId={draggingPlanId} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} getTooltip={store.getDayTooltip} />}
               {view === 'week' && <WeekView weekStart={weekStart} selectedDate={selectedDate} onSelectDate={handleSelectDate} getStatus={store.getStatusForDate} getPlans={store.getPlansForDate} getSessions={store.getSessionsForDate} />}
               {view === 'day' && <DayViewComponent dateStr={selectedDate} plans={store.plans} sessions={store.sessions} onDragStart={handleDragStart} onCompleteTask={handleCompleteTask} />}
             </motion.div>
@@ -1010,21 +1101,15 @@ export const CalendarPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Right Panel ──────────────────────────────────────── */}
+      {/* -- Right Panel ---------------------------------------- */}
+      {/* -- Right Panel ----------------------------------------------------------─ */}
       <div className="lg:flex-1 flex-shrink-0 space-y-3 min-w-0">
-        {/* Panel tabs */}
-        <div className="flex bg-white/5 border border-white/10 rounded-xl p-0.5 text-[10px] font-semibold">
-          {([['detail','Day'],['heatmap','Heatmap'],['future','Upcoming'],['summary','Stats']] as const).map(([key,label]) => (
-            <button key={key} onClick={() => setRightPanel(key)} className={`flex-1 py-1.5 rounded-lg transition ${rightPanel===key?'bg-electric-500/20 text-electric-400':'text-neutral-400 hover:text-white'}`}>{label}</button>
-          ))}
-        </div>
-
-        {/* Today's quick summary (always on top when not viewing today) */}
+        {/* Today’s quick summary (always on top when not viewing today) */}
         {selectedDate !== today && (
           <div className="glass-panel rounded-2xl border border-electric-500/20 p-3">
             <div className="flex items-center gap-2 mb-2"><Zap className="w-3.5 h-3.5 text-electric-400" /><span className="text-[10px] font-bold text-electric-400 uppercase tracking-widest">Today</span>
             <button onClick={() => { setSelectedDate(today); }} className="ml-auto text-[10px] text-electric-400 hover:underline">View →</button>
-          </div>
+            </div>
             <div className="grid grid-cols-3 gap-1.5">
               <div className="text-center p-1.5 rounded-lg bg-white/5"><p className="text-sm font-bold text-white">{store.todayData.plans.length}</p><p className="text-[8px] text-neutral-400">Tasks</p></div>
               <div className="text-center p-1.5 rounded-lg bg-white/5"><p className="text-sm font-bold text-emerald-400">{store.todayData.completionPercent}%</p><p className="text-[8px] text-neutral-400">Done</p></div>
@@ -1034,121 +1119,58 @@ export const CalendarPage: React.FC = () => {
           </div>
         )}
 
-        {/* Panel content */}
-        <div className="glass-panel rounded-2xl border border-white/10 p-4 lg:h-[calc(100vh-260px)] flex flex-col overflow-hidden">
-          {rightPanel === 'detail' && (
-            <DayPanel dateStr={selectedDate} subjects={subjectsForForm} store={store} onAddPlan={() => setShowPlanForm(true)} onLogSession={() => setShowSessionForm(true)} onEditPlan={(p) => { setEditPlan(p); setShowPlanForm(true); }} />
-          )}
-
-          {rightPanel === 'heatmap' && (
-            <div className="flex flex-col h-full">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0"><GitBranch className="w-4 h-4 text-electric-400" /><h4 className="text-sm font-bold text-white">Study Heatmap</h4></div>
-              <div className="flex items-center gap-3 mb-3 text-[9px] text-neutral-400 flex-shrink-0">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />100%</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400/70" />75-99%</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-400/70" />25-74%</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-rose-500/70" />Missed</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-white/8" />None</span>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <Heatmap data={store.heatmapData} onDayClick={(d) => { handleSelectDate(d); setRightPanel('detail'); }} />
-              </div>
-              <div className="mt-3 flex items-center justify-between p-2 rounded-xl bg-white/5 flex-shrink-0">
-                <div><p className="text-lg font-bold text-white">{store.streak.currentStreak}</p><p className="text-[9px] text-neutral-400">Day Streak</p></div>
-                <div className="text-right"><p className="text-lg font-bold text-white">{store.streak.longestStreak}</p><p className="text-[9px] text-neutral-400">Longest</p></div>
-              </div>
-            </div>
-          )}
-
-          {rightPanel === 'future' && (
-            <div className="flex flex-col h-full overflow-y-auto">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0"><ArrowRight className="w-4 h-4 text-blue-400" /><h4 className="text-sm font-bold text-white">What's Coming Up</h4></div>
-              {examPrediction && totalRemaining > 0 && (
-                <div className={`p-3 rounded-xl border mb-3 flex-shrink-0 ${examPrediction.willFinishOnTime ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-rose-500/20 bg-rose-500/5'}`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    {examPrediction.willFinishOnTime ? <ArrowUpRight className="w-4 h-4 text-emerald-400" /> : <ArrowDownRight className="w-4 h-4 text-rose-400" />}
-                    <span className={`text-xs font-bold ${examPrediction.willFinishOnTime ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {examPrediction.willFinishOnTime ? 'On Track' : 'Behind Schedule'}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-neutral-400">
-                    Need {examPrediction.requiredPagesPerDay} pages/day. You average {examPrediction.avgPagesPerDay}.
-                    {examPrediction.daysAheadOrBehind !== 0 && ` ${examPrediction.daysAheadOrBehind > 0 ? `${examPrediction.daysAheadOrBehind}d behind` : `${Math.abs(examPrediction.daysAheadOrBehind)}d ahead`}.`}
-                  </p>
-                </div>
-              )}
-              <div className="space-y-2">
-                {futureDays.map(day => (
-                  <div key={day.date} onClick={() => { handleSelectDate(day.date); setRightPanel('detail'); }} className="p-3 rounded-xl border border-white/8 bg-white/3 hover:border-white/15 cursor-pointer transition">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">{new Date(day.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span>
-                        {day.date === addDays(today, 1) && <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 font-semibold">Tomorrow</span>}
-                      </div>
-                      <CircularProgress percent={day.completionPercent} size={28} strokeWidth={3} />
-                    </div>
-                    {day.plans.length > 0 && (
-                      <div className="space-y-1">
-                        {day.plans.slice(0, 3).map(p => (
-                          <div key={p.id} className="flex items-center gap-2 text-[10px]">
-                            <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[p.priority].split(' ')[0].replace('text-','bg-')}`.replace('bg-emerald','bg-emerald-400').replace('bg-amber','bg-amber-400').replace('bg-rose','bg-rose-400')} />
-                            <span className="text-neutral-300 truncate flex-1">{p.subjectName}: {p.chapterName}</span>
-                            <span className="text-neutral-500">pp. {p.pageStart}–{p.pageEnd}</span>
-                          </div>
-                        ))}
-                        {day.plans.length > 3 && <p className="text-[9px] text-neutral-500">+{day.plans.length - 3} more tasks</p>}
-                      </div>
-                    )}
-                    {day.plans.length === 0 && <p className="text-[10px] text-neutral-500">Nothing planned</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {rightPanel === 'summary' && (
-            <div className="flex flex-col h-full overflow-y-auto">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0"><BarChart2 className="w-4 h-4 text-electric-400" /><h4 className="text-sm font-bold text-white">Statistics</h4></div>
-              {/* Streak */}
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8 mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2"><Flame className="w-4 h-4 text-orange-400" /><span className="text-xs font-semibold text-white">Study Streak</span></div>
-                <div className="flex items-center gap-3"><div><p className="text-lg font-bold text-orange-400">{store.streak.currentStreak}</p><p className="text-[8px] text-neutral-400">Current</p></div><div><p className="text-lg font-bold text-white">{store.streak.longestStreak}</p><p className="text-[8px] text-neutral-400">Best</p></div></div>
-              </div>
-              {/* Today */}
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8 mb-3">
-                <p className="text-xs font-semibold text-white mb-2">Today's Progress</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <CircularProgress percent={store.todayData.completionPercent} size={48} strokeWidth={4} />
-                  <div className="space-y-1 text-[10px]">
-                    <div className="flex justify-between"><span className="text-neutral-400">Tasks</span><span className="text-white font-semibold">{store.todayData.sessions.length}/{store.todayData.plans.length}</span></div>
-                    <div className="flex justify-between"><span className="text-neutral-400">Pages</span><span className="text-white font-semibold">{store.todayData.totalCompletedPages}/{store.todayData.totalPlannedPages}</span></div>
-                    <div className="flex justify-between"><span className="text-neutral-400">Time</span><span className="text-white font-semibold">{formatMinutes(store.todayData.totalStudiedMinutes)}/{formatMinutes(store.todayData.totalPlannedMinutes)}</span></div>
-                  </div>
-                </div>
-              </div>
-              {/* Exam Prediction */}
-              {examPrediction && totalRemaining > 0 && (
-                <div className="p-3 rounded-xl bg-white/5 border border-white/8 mb-3">
-                  <p className="text-xs font-semibold text-white mb-2">Exam Readiness</p>
-                  <div className="space-y-1.5 text-[10px]">
-                    <div className="flex justify-between"><span className="text-neutral-400">Status</span><span className={examPrediction.willFinishOnTime?'text-emerald-400 font-semibold':'text-rose-400 font-semibold'}>{examPrediction.willFinishOnTime?'On Track':'Behind'}</span></div>
-                    <div className="flex justify-between"><span className="text-neutral-400">Pages Remaining</span><span className="text-white font-semibold">{totalRemaining}</span></div>
-                    <div className="flex justify-between"><span className="text-neutral-400">Required/Day</span><span className="text-white font-semibold">{examPrediction.requiredPagesPerDay}</span></div>
-                    <div className="flex justify-between"><span className="text-neutral-400">Your Average</span><span className="text-white font-semibold">{examPrediction.avgPagesPerDay}</span></div>
-                  </div>
-                </div>
-              )}
-              {/* Monthly Summary */}
-              <div className="p-3 rounded-xl bg-white/5 border border-white/8">
-                <p className="text-xs font-semibold text-white mb-2">{MONTHS[currentMonth]} {currentYear}</p>
-                <MonthlySummaryCard summary={monthlySummary} />
-              </div>
-            </div>
-          )}
+        {/* Dynamic Right Panel Content */}
+        <div className="glass-panel rounded-2xl border border-white/10 p-4 lg:h-[calc(100vh-200px)] flex flex-col overflow-hidden">
+          <DayPanel dateStr={selectedDate} subjects={subjectsForForm} store={store} onAddPlan={() => setShowPlanForm(true)} onLogSession={() => setShowSessionForm(true)} onEditPlan={(p) => { setEditPlan(p); setShowPlanForm(true); }} />
         </div>
+
+        {/* Syllabus Forecast Section */}
+        {syllabusForecast && (
+          <div className="glass-panel rounded-2xl border border-white/10 p-4">
+            <div className="flex items-center gap-2 mb-3"><TrendingUp className="w-4 h-4 text-electric-400" /><h4 className="text-xs font-bold text-white uppercase tracking-widest">Syllabus Forecast</h4></div>
+            <div className="space-y-3 text-[10px]">
+              <div className="flex justify-between items-center">
+                <span className="text-neutral-400">Selected Date</span>
+                <span className="text-white font-semibold">{new Date(selectedDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-neutral-400">Expected Completion</span>
+                  <span className={`text-sm font-bold ${syllabusForecast.expectedCompletionPercent >= 100 ? 'text-emerald-400' : syllabusForecast.expectedCompletionPercent >= 50 ? 'text-electric-400' : 'text-amber-400'}`}>{syllabusForecast.expectedCompletionPercent}%</span>
+                </div>
+                <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-500 ${syllabusForecast.expectedCompletionPercent >= 100 ? 'bg-emerald-400' : 'bg-gradient-to-r from-electric-600 to-electric-400'}`} style={{width:`${Math.min(100,syllabusForecast.expectedCompletionPercent)}%`}} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="p-2 rounded-xl bg-white/5 border border-white/8">
+                  <p className="text-sm font-bold text-white">{syllabusForecast.pagesAlreadyCompleted}/{syllabusForecast.totalSyllabusPages}</p>
+                  <p className="text-[9px] text-neutral-400">Pages Done / Total</p>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/8">
+                  <p className="text-sm font-bold text-white">{syllabusForecast.currentDailyTarget}</p>
+                  <p className="text-[9px] text-neutral-400">Current Daily Target</p>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/8">
+                  <p className="text-sm font-bold text-white">{syllabusForecast.daysToSelected}</p>
+                  <p className="text-[9px] text-neutral-400">Days to Selected</p>
+                </div>
+                <div className="p-2 rounded-xl bg-white/5 border border-white/8">
+                  <p className="text-sm font-bold text-white">{syllabusForecast.daysToExam}</p>
+                  <p className="text-[9px] text-neutral-400">Days to Exam</p>
+                </div>
+              </div>
+              {syllabusForecast.redistributedPages > 0 && (
+                <div className="p-2 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-400">
+                  <span className="font-semibold">+{syllabusForecast.redistributedPages} pages</span> redistributed across {syllabusForecast.daysToExam} days due to {syllabusForecast.missedDays} missed day{syllabusForecast.missedDays !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── Modals ──────────────────────────────────────────── */}
+      {/* -- Modals -------------------------------------------- */}
       <AnimatePresence>
         {showPlanForm && <PlanForm initialDate={selectedDate} subjects={subjectsForForm} onSave={store.addPlan} onClose={() => { setShowPlanForm(false); setEditPlan(undefined); }} existing={editPlan} />}
         {showSessionForm && <SessionForm initialDate={selectedDate} subjects={subjectNames} onSave={store.addSession} onClose={() => { setShowSessionForm(false); setEditPlan(undefined); }} linkedPlanId={editPlan?.id} prefill={editPlan} />}
