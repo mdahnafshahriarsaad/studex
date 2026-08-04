@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserProfile, AppSettings } from '../../types';
 import { Badge } from '../ui/Badge';
-import { getCurrentUserAccount, logoutAccount } from '../../services/authService';
+import { getCurrentFirebaseUser, logoutAccount } from '../../services/authService';
 import { Sparkles, Flame, LogOut, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { t } from '../../utils/i18n';
@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ profile, settings, onOpenAuthMod
   const navigate = useNavigate();
   const lang = settings?.language || 'English';
   const g = profile.gamification || { xp: 150, level: 1, currentStreak: 1 };
-  const currentAcc = getCurrentUserAccount();
+  const firebaseUser = getCurrentFirebaseUser();
 
   return (
     <header className="sticky top-0 z-30 w-full glass-nav border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between select-none">
@@ -44,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ profile, settings, onOpenAuthMod
         <Badge variant="electric">Lvl {g.level || 1}</Badge>
 
         {/* Account Button / Auth Toggle */}
-        {currentAcc ? (
+        {firebaseUser ? (
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/profile')}
@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({ profile, settings, onOpenAuthMod
               <span className="text-base">{profile.avatar || '🎓'}</span>
               <div className="text-left hidden sm:block">
                 <span className="text-xs font-bold text-white max-w-[100px] truncate block leading-none">{profile.name || 'Saad'}</span>
-                <span className="text-[9px] text-electric-400 font-medium leading-none">{currentAcc.email}</span>
+                <span className="text-[9px] text-electric-400 font-medium leading-none">{firebaseUser.email}</span>
               </div>
             </button>
             <button

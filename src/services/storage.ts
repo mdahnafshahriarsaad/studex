@@ -57,9 +57,10 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   language: 'English',
 };
 
-export function getUserProfile(): UserProfile {
+export function getUserProfile(customKey?: string): UserProfile {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+    const key = customKey || STORAGE_KEYS.USER_PROFILE;
+    const data = localStorage.getItem(key);
     if (!data) return DEFAULT_USER_PROFILE;
     const parsed = JSON.parse(data);
     return {
@@ -73,17 +74,19 @@ export function getUserProfile(): UserProfile {
   }
 }
 
-export function saveUserProfile(profile: UserProfile): void {
+export function saveUserProfile(profile: UserProfile, customKey?: string): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(profile));
+    const key = customKey || STORAGE_KEYS.USER_PROFILE;
+    localStorage.setItem(key, JSON.stringify(profile));
   } catch (e) {
     console.error('Error saving user profile:', e);
   }
 }
 
-export function getAppSettings(): AppSettings {
+export function getAppSettings(customKey?: string): AppSettings {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.APP_SETTINGS);
+    const key = customKey || STORAGE_KEYS.APP_SETTINGS;
+    const data = localStorage.getItem(key);
     if (!data) return DEFAULT_APP_SETTINGS;
     const parsed = JSON.parse(data);
     // Migrate old themes to new ones
@@ -95,9 +98,10 @@ export function getAppSettings(): AppSettings {
   }
 }
 
-export function saveAppSettings(settings: AppSettings): void {
+export function saveAppSettings(settings: AppSettings, customKey?: string): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.APP_SETTINGS, JSON.stringify(settings));
+    const key = customKey || STORAGE_KEYS.APP_SETTINGS;
+    localStorage.setItem(key, JSON.stringify(settings));
   } catch (e) {
     console.error('Error saving app settings:', e);
   }

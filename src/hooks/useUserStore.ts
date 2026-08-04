@@ -3,7 +3,7 @@ import { UserProfile, AppSettings, AnimationMode, SubjectItem, Chapter, ChapterD
 import { getUserProfile, saveUserProfile, getAppSettings, saveAppSettings } from '../services/storage';
 import { calculateTotalPages, recalculateSubjectStats, calculateMissedTargetRecovery } from '../services/plannerEngine';
 import { generateRevisionSchedule } from '../services/revisionService';
-import { syncCurrentAccountData, subscribeToCloudSync, getCurrentUserAccount } from '../services/authService';
+import { syncCurrentAccountData, subscribeToCloudSync } from '../services/authService';
 import { getSyllabusForClass } from '../utils/subjectGenerator';
 
 export function useUserStore() {
@@ -32,17 +32,13 @@ export function useUserStore() {
     }
   }, [settings]);
 
-  // Subscribe to automatic cross-device / multi-tab cloud sync updates
+  // Subscribe to cross-tab sync updates
   useEffect(() => {
     const unsubscribe = subscribeToCloudSync(() => {
-      const acc = getCurrentUserAccount();
-      if (acc) {
-        if (acc.profile) setProfileState(acc.profile);
-        if (acc.settings) setSettingsState(acc.settings);
-      } else {
-        const freshProfile = getUserProfile();
-        setProfileState(freshProfile);
-      }
+      // Reload profile from localStorage (cross-tab updates)
+      const freshProfile = getUserProfile();
+      setProfileState(freshProfile);
+      setSettingsState(getAppSettings());
     });
 
     return () => unsubscribe();

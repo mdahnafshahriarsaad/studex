@@ -5,7 +5,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { calculateLevelFromXP } from '../services/gamificationService';
-import { getCurrentUserAccount, logoutAccount } from '../services/authService';
+import { getCurrentFirebaseUser, logoutAccount } from '../services/authService';
 import {
   User, Award, Flame, BookOpen, Clock, Layers, Trophy, CheckCircle2, Shield, Settings as SettingsIcon, Mail, Lock, ShieldCheck, LogOut
 } from 'lucide-react';
@@ -122,7 +122,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
 
       {/* EMAIL LOGIN & CLOUD ACCOUNT CARD */}
       {(() => {
-        const currentAcc = getCurrentUserAccount();
+        const firebaseUser = getCurrentFirebaseUser();
         const { onOpenAuthModal } = (useOutletContext() || {}) as { onOpenAuthModal?: () => void };
 
         return (
@@ -135,21 +135,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-white text-base">Email Account & Cloud Sync</h3>
-                    {currentAcc ? (
+                    {firebaseUser ? (
                       <Badge variant="electric">Verified Email</Badge>
                     ) : (
                       <Badge variant="neutral">Local Offline Profile</Badge>
                     )}
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
-                    {currentAcc
-                      ? `Signed in as ${currentAcc.email} &bull; Cross-device sync active`
+                    {firebaseUser
+                      ? `Signed in as ${firebaseUser.email} &bull; Firebase Auth active`
                       : 'Sign in with an email account to enable multi-device sync'}
                   </p>
                 </div>
               </div>
 
-              {currentAcc ? (
+              {firebaseUser ? (
                 <Button
                   variant="danger"
                   size="sm"
@@ -161,7 +161,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
                     }
                   }}
                 >
-                  Sign Out ({currentAcc.email.split('@')[0]})
+                  Sign Out ({firebaseUser?.email?.split('@')[0] || 'User'})
                 </Button>
               ) : (
                 <Button

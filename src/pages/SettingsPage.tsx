@@ -5,7 +5,7 @@ import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { requestNotificationPermission } from '../services/notificationService';
-import { getCurrentUserAccount, logoutAccount } from '../services/authService';
+import { getCurrentFirebaseUser, logoutAccount } from '../services/authService';
 import {
   Settings, Sliders, Globe, Info, RotateCcw, Smartphone, Moon, Cpu, Bell, ShieldCheck, Check, Sparkles, Zap, Mail, Lock, LogOut
 } from 'lucide-react';
@@ -295,7 +295,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
       {/* 6. Email Account & Cloud Sync Settings */}
       {(() => {
-        const currentAcc = getCurrentUserAccount();
+        const firebaseUser = getCurrentFirebaseUser();
         const { onOpenAuthModal } = (useOutletContext() || {}) as { onOpenAuthModal?: () => void };
 
         return (
@@ -308,15 +308,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                 <div>
                   <h3 className="font-bold text-white text-base">Email Account & Cloud Sync</h3>
                   <p className="text-xs text-neutral-400">
-                    {currentAcc
-                      ? `Signed in as ${currentAcc.email}`
+                    {firebaseUser
+                      ? `Signed in as ${firebaseUser.email}`
                       : 'Sign in to automatically back up and sync syllabus progress'}
                   </p>
                 </div>
               </div>
 
               <div>
-                {currentAcc ? (
+                {firebaseUser ? (
                   <Button
                     variant="danger"
                     size="sm"
@@ -328,7 +328,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
                       }
                     }}
                   >
-                    Sign Out ({currentAcc.email.split('@')[0]})
+                    Sign Out ({firebaseUser.email?.split('@')[0] || 'User'})
                   </Button>
                 ) : (
                   <Button
