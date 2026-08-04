@@ -352,28 +352,53 @@ const StatusIcon: React.FC<{ status: StudyStatus; size?: number }> = ({ status, 
 // ─── Heatmap Component ────────────────────────────────────────────────────
 interface HeatmapProps { data: HeatmapDay[]; onDayClick: (date: string) => void; }
 const Heatmap: React.FC<HeatmapProps> = ({ data, onDayClick }) => {
-  // Group into weeks (52 weeks)
-  const weeks: HeatmapDay[][] = [];
-  let week: HeatmapDay[] = [];
-  for (const d of data) {
-    week.push(d);
-    if (new Date(d.date + 'T00:00:00').getDay() === 6 || week.length === 7) {
-      weeks.push(week);
-      week = [];
-    }
+  // Pad start so first week always begins on Sunday (day 0)
+  const firstDayOfWeek = data.length > 0 ? new Date(data[0].date + 'T00:00:00').getDay() : 0;
+  const padded: (HeatmapDay | null)[] = Array(firstDayOfWeek).fill(null).concat(data);
+
+  // Group into full weeks of 7
+  const weeks: (HeatmapDay | null)[][] = [];
+  for (let i = 0; i < padded.length; i += 7) {
+    weeks.push(padded.slice(i, i + 7));
   }
-  if (week.length > 0) weeks.push(week);
+
+  // Build month labels (show once per month at the week where it first appears)
+  const monthLabels = new Map<number, string>();
+  let lastMonth = -1;
+  weeks.forEach((w, wi) => {
+    const firstValid = w.find(d => d !== null);
+    if (firstValid) {
+      const m = new Date(firstValid.date + 'T00:00:00').getMonth();
+      if (m !== lastMonth) {
+        monthLabels.set(wi, new Date(firstValid.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' }));
+        lastMonth = m;
+      }
+    }
+  });
 
   return (
     <div className="overflow-x-auto pb-2">
+      {/* Month labels row */}
+      <div className="flex gap-[3px] min-w-max mb-1">
+        {weeks.map((_, wi) => (
+          <div key={wi} className="w-[13px] text-[7px] text-neutral-500 font-medium leading-none">
+            {monthLabels.get(wi) || ''}
+          </div>
+        ))}
+      </div>
+      {/* Heatmap grid */}
       <div className="flex gap-[3px] min-w-max">
         {weeks.map((w, wi) => (
           <div key={wi} className="flex flex-col gap-[3px]">
-            {w.map(day => (
-              <button key={day.date} onClick={() => onDayClick(day.date)} title={`${day.date}: ${day.completionPercent}%`}
-                className={`w-[13px] h-[13px] rounded-[3px] transition-all duration-200 hover:scale-150 hover:ring-1 hover:ring-white/30 ${HEATMAP_COLORS[day.color]}`}
-              />
-            ))}
+            {w.map((day, di) =>
+              day ? (
+                <button key={day.date} onClick={() => onDayClick(day.date)} title={`${day.date}: ${day.completionPercent}%`}
+                  className={`w-[13px] h-[13px] rounded-[3px] transition-all duration-200 hover:scale-150 hover:ring-1 hover:ring-white/30 ${HEATMAP_COLORS[day.color]}`}
+                />
+              ) : (
+                <div key={`e-${wi}-${di}`} className="w-[13px] h-[13px]" />
+              )
+            )}
           </div>
         ))}
       </div>
@@ -872,7 +897,7 @@ export const CalendarPage: React.FC = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 h-full min-h-screen select-none">
       {/* ── Left: Calendar ─────────────────────────────────── */}
-      <div className="flex-1 flex flex-col gap-3 min-w-0">
+      <div className="lg:w-[55%] xl:w-[58%] flex-shrink-0 flex flex-col gap-3 min-w-0">
         {/* Top bar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-3">
@@ -986,7 +1011,7 @@ export const CalendarPage: React.FC = () => {
       </div>
 
       {/* ── Right Panel ──────────────────────────────────────── */}
-      <div className="lg:w-80 xl:w-96 flex-shrink-0 space-y-3">
+      <div className="lg:flex-1 flex-shrink-0 space-y-3 min-w-0">
         {/* Panel tabs */}
         <div className="flex bg-white/5 border border-white/10 rounded-xl p-0.5 text-[10px] font-semibold">
           {([['detail','Day'],['heatmap','Heatmap'],['future','Upcoming'],['summary','Stats']] as const).map(([key,label]) => (
