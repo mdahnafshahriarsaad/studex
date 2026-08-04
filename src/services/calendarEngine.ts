@@ -450,7 +450,7 @@ export function adaptFuturePlans(
 // HEATMAP DATA GENERATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-export type HeatmapColor = 'dark-green' | 'light-green' | 'yellow' | 'red' | 'grey';
+export type HeatmapColor = 'dark-green' | 'green' | 'light-green' | 'yellow' | 'red' | 'grey' | 'planned';
 
 export interface HeatmapDay {
   date: string;
@@ -469,6 +469,8 @@ export function generateHeatmapData(
   const start = startDate || addDays(getTodayStr(), -days);
   const result: HeatmapDay[] = [];
 
+  const today = getTodayStr();
+
   for (let d = 0; d < days; d++) {
     const dateStr = addDays(start, d);
     const dayPlans = plans.filter(p => p.date === dateStr);
@@ -477,20 +479,32 @@ export function generateHeatmapData(
     const totalPlanned = dayPlans.reduce((a, p) => a + Math.max(0, p.pageEnd - p.pageStart + 1), 0);
     const totalCompleted = daySessions.reduce((a, s) => a + s.pagesCompleted, 0);
     const pct = totalPlanned > 0 ? (totalCompleted / totalPlanned) * 100 : -1;
+    const isPast = dateStr < today;
+    const isFuture = dateStr > today;
 
     let color: HeatmapColor = 'grey';
+
     if (totalPlanned === 0 && totalCompleted === 0) {
+      // No study scheduled at all
       color = 'grey';
+    } else if (isFuture && totalPlanned > 0 && totalCompleted === 0) {
+      // Future date with plans but no sessions yet
+      color = 'planned';
+    } else if (isPast && totalPlanned > 0 && totalCompleted === 0) {
+      // Past date with plans but zero completion = missed
+      color = 'red';
     } else if (pct >= 100) {
       color = 'dark-green';
-    } else if (pct >= 75) {
+    } else if (pct >= 80) {
+      color = 'green';
+    } else if (pct >= 50) {
       color = 'light-green';
-    } else if (pct >= 25) {
+    } else if (pct >= 1) {
       color = 'yellow';
-    } else if (pct >= 0) {
+    } else if (isPast) {
       color = 'red';
     } else {
-      // Only sessions, no plans (free study)
+      // Today or future with sessions but no plans (free study)
       color = totalCompleted > 0 ? 'dark-green' : 'grey';
     }
 

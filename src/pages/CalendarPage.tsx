@@ -13,8 +13,7 @@ import {
 import { useCalendarStore, getTodayStr, addDays, useDayData } from '../hooks/useCalendarStore';
 import { StudyPlan, StudySession, StudyPriority, CalendarView, StudyStatus, TaskStatus } from '../types/calendar';
 import { useUserStore } from '../hooks/useUserStore';
-import { generateAutoStudyPlan } from '../services/calendarEngine';
-import { HeatmapDay, MonthlySummary, SyllabusForecast, DayTooltipData } from '../services/calendarEngine';
+import { HeatmapDay, MonthlySummary, SyllabusForecast, DayTooltipData, generateHeatmapData } from '../services/calendarEngine';
 import { GlassCard } from '../components/ui/GlassCard';
 
 // --─ helpers ----------------------------------------------------------------─
@@ -48,11 +47,13 @@ const TASK_STATUS_ICON: Record<string, React.ReactNode> = {
   'cancelled': <XCircle className="w-4 h-4 text-neutral-500" />,
 };
 const HEATMAP_COLORS: Record<string, string> = {
-  'dark-green': 'bg-emerald-500',
-  'light-green': 'bg-emerald-400/70',
+  'dark-green': 'bg-emerald-600',
+  'green': 'bg-emerald-400/80',
+  'light-green': 'bg-emerald-300/60',
   'yellow': 'bg-amber-400/70',
   'red': 'bg-rose-500/70',
   'grey': 'bg-white/8',
+  'planned': 'bg-blue-400/40',
 };
 
 function getDaysInMonth(year: number, month: number) {
@@ -368,59 +369,143 @@ const StatusIcon: React.FC<{ status: StudyStatus; size?: number }> = ({ status, 
   return <Circle style={{width:size,height:size}} className="text-white/15" />;
 };
 
-// --─ Heatmap Component ----------------------------------------------------
-interface HeatmapProps { data: HeatmapDay[]; onDayClick: (date: string) => void; }
-const Heatmap: React.FC<HeatmapProps> = ({ data, onDayClick }) => {
-  // Pad start so first week always begins on Sunday (day 0)
-  const firstDayOfWeek = data.length > 0 ? new Date(data[0].date + 'T00:00:00').getDay() : 0;
-  const padded: (HeatmapDay | null)[] = Array(firstDayOfWeek).fill(null).concat(data);
+// --─ Heatmap Component (GitHub-style, month-by-month) ----------------------
+interface HeatmapProps {
+  data: HeatmapDay[];
+  onDayClick: (date: string) => void;
+  getTooltip: (d: string) => DayTooltipData;
+  selectedDate: string;
+}
 
-  // Group into full weeks of 7
-  const weeks: (HeatmapDay | null)[][] = [];
-  for (let i = 0; i < padded.length; i += 7) {
-    weeks.push(padded.slice(i, i + 7));
-  }
+const Heatmap: React.FC<HeatmapProps> = ({ data, onDayClick, getTooltip, selectedDate }) => {
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Build month labels (show once per month at the week where it first appears)
-  const monthLabels = new Map<number, string>();
-  let lastMonth = -1;
-  weeks.forEach((w, wi) => {
-    const firstValid = w.find(d => d !== null);
-    if (firstValid) {
-      const m = new Date(firstValid.date + 'T00:00:00').getMonth();
-      if (m !== lastMonth) {
-        monthLabels.set(wi, new Date(firstValid.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' }));
-        lastMonth = m;
-      }
+  // Group data by month key ("2025-08")
+  const monthGroups = useMemo(() => {
+    const map = new Map<string, HeatmapDay[]>();
+    for (const day of data) {
+      const key = day.date.substring(0, 7);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(day);
     }
-  });
+    // Sort by month key
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [data]);
+
+  const handleMouseEnter = useCallback((dateStr: string, e: React.MouseEvent) => {
+    setHoveredDate(dateStr);
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const containerRect = tooltipRef.current?.parentElement?.getBoundingClientRect();
+    if (containerRect) {
+      setTooltipPos({
+        x: rect.left - containerRect.left + rect.width / 2,
+        y: rect.top - containerRect.top,
+      });
+    }
+  }, []);
+
+  const tooltipData = hoveredDate ? getTooltip(hoveredDate) : null;
 
   return (
-    <div className="overflow-x-auto pb-2">
-      {/* Month labels row */}
-      <div className="flex gap-[3px] min-w-max mb-1">
-        {weeks.map((_, wi) => (
-          <div key={wi} className="w-[13px] text-[7px] text-neutral-500 font-medium leading-none">
-            {monthLabels.get(wi) || ''}
-          </div>
-        ))}
+    <div className="relative overflow-x-auto pb-2" ref={tooltipRef}>
+      <div className="flex gap-5 min-w-max">
+        {monthGroups.map(([monthKey, days]) => {
+          const [yearStr, monthStr] = monthKey.split('-');
+          const year = parseInt(yearStr);
+          const month = parseInt(monthStr);
+          const daysInMonth = getDaysInMonth(year, month - 1);
+          const firstDay = getFirstDayOfMonth(year, month - 1);
+          const monthLabel = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short' });
+
+          // Build a lookup map for this month
+          const dayMap = new Map<string, HeatmapDay>();
+          for (const d of days) dayMap.set(d.date, d);
+
+          // Create grid cells: pad start with nulls to align to Sunday
+          const cells: (HeatmapDay | null)[] = [];
+          for (let i = 0; i < firstDay; i++) cells.push(null);
+          for (let d = 1; d <= daysInMonth; d++) {
+            const ds = `${yearStr}-${monthStr}-${String(d).padStart(2, '0')}`;
+            cells.push(dayMap.get(ds) || { date: ds, color: 'grey' as const, completionPercent: 0, totalPlanned: 0, totalCompleted: 0 });
+          }
+          while (cells.length % 7 !== 0) cells.push(null);
+
+          const rows: (HeatmapDay | null)[][] = [];
+          for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+
+          return (
+            <div key={monthKey} className="flex-shrink-0">
+              <div className="text-[10px] text-neutral-400 font-semibold mb-1.5 h-4 flex items-end">{monthLabel}</div>
+              <div className="flex flex-col gap-[3px]">
+                {rows.map((row, ri) => (
+                  <div key={ri} className="flex gap-[3px]">
+                    {row.map((cell, ci) =>
+                      cell ? (
+                        <button
+                          key={cell.date}
+                          onClick={() => onDayClick(cell.date)}
+                          onMouseEnter={(e) => handleMouseEnter(cell.date, e)}
+                          onMouseLeave={() => setHoveredDate(null)}
+                          className={`w-[14px] h-[14px] rounded-[3px] transition-all duration-150 hover:scale-150 hover:ring-1 hover:ring-white/30 hover:z-10 relative ${HEATMAP_COLORS[cell.color]} ${cell.date === selectedDate ? 'ring-2 ring-electric-400 scale-110' : ''}`}
+                        />
+                      ) : (
+                        <div key={`e-${ri}-${ci}`} className="w-[14px] h-[14px]" />
+                      )
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {/* Heatmap grid */}
-      <div className="flex gap-[3px] min-w-max">
-        {weeks.map((w, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
-            {w.map((day, di) =>
-              day ? (
-                <button key={day.date} onClick={() => onDayClick(day.date)} title={`${day.date}: ${day.completionPercent}%`}
-                  className={`w-[13px] h-[13px] rounded-[3px] transition-all duration-200 hover:scale-150 hover:ring-1 hover:ring-white/30 ${HEATMAP_COLORS[day.color]}`}
-                />
-              ) : (
-                <div key={`e-${wi}-${di}`} className="w-[13px] h-[13px]" />
-              )
-            )}
+
+      {/* Tooltip */}
+      {hoveredDate && tooltipData && (
+        <div
+          className="absolute z-50 pointer-events-none min-w-[180px]"
+          style={{ left: tooltipPos.x, top: tooltipPos.y, transform: 'translate(-50%, -100%)' }}
+        >
+          <div className="px-3 py-2.5 rounded-xl bg-black/95 border border-white/15 shadow-2xl backdrop-blur-xl mb-2">
+            <p className="text-[10px] font-bold text-white mb-1.5">
+              {new Date(hoveredDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+            <div className="space-y-1 text-[10px]">
+              <div className="flex justify-between">
+                <span className="text-neutral-400">Completion</span>
+                <span className={`font-bold ${tooltipData.completionPercent >= 100 ? 'text-emerald-400' : tooltipData.completionPercent >= 50 ? 'text-electric-300' : tooltipData.completionPercent > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                  {tooltipData.completionPercent}%
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-400">Pages</span>
+                <span className="text-white font-semibold">{tooltipData.pagesCompleted} / {tooltipData.pagesPlanned}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-400">Tasks</span>
+                <span className="text-white font-semibold">{tooltipData.completedTasks} / {tooltipData.taskCount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-400">Study Time</span>
+                <span className="text-white font-semibold">
+                  {tooltipData.studyHours >= 1
+                    ? `${Math.floor(tooltipData.studyHours)}h ${Math.round((tooltipData.studyHours % 1) * 60)}m`
+                    : `${Math.round(tooltipData.studyHours * 60)}m`}
+                </span>
+              </div>
+              {tooltipData.missedTasks > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-rose-400">Missed</span>
+                  <span className="text-rose-400 font-semibold">{tooltipData.missedTasks}</span>
+                </div>
+              )}
+            </div>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-2 h-2 rotate-45 bg-black/95 border-r border-b border-white/15" />
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -903,6 +988,23 @@ export const CalendarPage: React.FC = () => {
     return store.getSyllabusForecast(selectedDate, totalSyllabusPages, profile.examInfo.date);
   }, [selectedDate, store.plans, store.sessions, profile.examInfo, totalSyllabusPages]);
 
+  // Academic year heatmap data (Aug -> Jul)
+  const acadYearHeatmap = useMemo(() => {
+    const todayMonth = todayDate.getMonth(); // 0-indexed
+    // Academic year: if Aug or later, start this year; otherwise start previous year
+    const startYear = todayMonth >= 7 ? todayDate.getFullYear() : todayDate.getFullYear() - 1;
+    const startDate = `${startYear}-08-01`;
+    const endDate = `${startYear + 1}-07-31`;
+    const totalDays = Math.round((new Date(endDate + 'T00:00:00').getTime() - new Date(startDate + 'T00:00:00').getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return generateHeatmapData(store.plans, store.sessions, startDate, totalDays);
+  }, [store.plans, store.sessions]);
+
+  const acadYearLabel = useMemo(() => {
+    const todayMonth = todayDate.getMonth();
+    const startYear = todayMonth >= 7 ? todayDate.getFullYear() : todayDate.getFullYear() - 1;
+    return `${startYear} - ${startYear + 1}`;
+  }, []);
+
 
   // Navigation
   const navigate = useCallback((dir: 1 | -1) => {
@@ -1093,7 +1195,46 @@ export const CalendarPage: React.FC = () => {
           </AnimatePresence>
         </div>
 
-        {/* Legend */}
+        {/* Heatmap Section */}
+        <div className="glass-panel rounded-2xl border border-white/10 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-electric-400" />
+              <h4 className="text-xs font-bold text-white uppercase tracking-widest">Study Heatmap</h4>
+              <span className="text-[10px] text-neutral-500 font-medium">{acadYearLabel}</span>
+            </div>
+            <div className="flex items-center gap-3 text-[10px]">
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-neutral-400">Current</span>
+                <span className="text-white font-bold">{store.streak.currentStreak}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-neutral-400">Best</span>
+                <span className="text-white font-bold">{store.streak.longestStreak}</span>
+              </div>
+            </div>
+          </div>
+          <Heatmap
+            data={acadYearHeatmap}
+            onDayClick={handleSelectDate}
+            getTooltip={store.getDayTooltip}
+            selectedDate={selectedDate}
+          />
+          {/* Legend */}
+          <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-3 pt-3 border-t border-white/5 text-[10px] text-neutral-500">
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-white/8" />No Study</span>
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-blue-400/40" />Planned</span>
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-rose-500/70" />Missed</span>
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-amber-400/70" />1-49%</span>
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-emerald-300/60" />50-79%</span>
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-emerald-400/80" />80-99%</span>
+            <span className="flex items-center gap-1"><span className="w-[10px] h-[10px] rounded-[2px] bg-emerald-600" />100%</span>
+          </div>
+        </div>
+
+        {/* Status Legend */}
         <div className="flex items-center flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-neutral-400">
           {(Object.entries(STATUS_DOT) as [StudyStatus, string][]).filter(([k]) => k !== 'none').map(([status, dot]) => (
             <div key={status} className="flex items-center gap-1.5"><span className={`w-2 h-2 rounded-full ${dot}`} /><span>{STATUS_LABEL[status]}</span></div>
