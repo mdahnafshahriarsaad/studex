@@ -103,6 +103,7 @@ export async function publishGuardianData(profile: UserProfile): Promise<void> {
   try {
     const ref = doc(db, COLLECTION, cleanCode);
     await setDoc(ref, snapshot, { merge: true });
+    console.log(`[GuardianCloud] Published guardian data for code: ${cleanCode} (${snapshot.subjects.length} subjects, ${snapshot.studyHistory.length} sessions, ${snapshot.gamification.totalStudyMinutes} total mins)`);
   } catch (err) {
     // Silent fail — guardian cloud is best-effort, don't block the student
     console.warn('[GuardianCloud] Failed to publish:', err);
@@ -116,17 +117,25 @@ export async function publishGuardianData(profile: UserProfile): Promise<void> {
 export async function lookupGuardianByCode(
   code: string
 ): Promise<{ studentName: string; snapshot: GuardianSnapshot } | null> {
-  if (!isConfigured) return null;
+  if (!isConfigured) {
+    console.warn('[GuardianCloud] Firebase not configured, cannot lookup.');
+    return null;
+  }
 
   const cleanCode = code.trim().toUpperCase();
+  console.log(`[GuardianCloud] Looking up code: ${cleanCode}`);
 
   try {
     const ref = doc(db, COLLECTION, cleanCode);
     const snap = await getDoc(ref);
 
-    if (!snap.exists()) return null;
+    if (!snap.exists()) {
+      console.warn(`[GuardianCloud] No document found for code: ${cleanCode}`);
+      return null;
+    }
 
     const data = snap.data() as GuardianSnapshot;
+    console.log(`[GuardianCloud] Found student: ${data.studentName} (${data.subjects.length} subjects, ${data.studyHistory.length} sessions)`);
     return {
       studentName: data.studentName,
       snapshot: data,

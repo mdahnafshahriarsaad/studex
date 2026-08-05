@@ -7,10 +7,11 @@ import { Badge } from '../components/ui/Badge';
 import { t, formatNumber, translateSubjectName, getCurrentLanguage } from '../utils/i18n';
 import { generateDailyReportSummary } from '../services/guardianService';
 import { lookupGuardianStudentAsync, connectGuardianAsync, fetchGuardianDashboardAsync } from '../services/authService';
+import { publishGuardianData } from '../services/guardianCloudService';
 import { calculateRemainingDays } from '../services/plannerEngine';
 import {
   ShieldCheck, Lock, Share2, Copy, Check, Eye, Heart, Clock,
-  AlertTriangle, Send, LogOut, CheckCircle2, ShieldAlert, RefreshCw, Loader2, ArrowLeft
+  AlertTriangle, Send, LogOut, CheckCircle2, ShieldAlert, RefreshCw, Loader2, ArrowLeft, Upload
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -40,6 +41,7 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile: studentProf
   const [encouragementSent, setEncouragementSent] = React.useState(false);
   const [loadingConnect, setLoadingConnect] = React.useState(false);
   const [loadingDashboard, setLoadingDashboard] = React.useState(false);
+  const [publishingNow, setPublishingNow] = React.useState(false);
   const [initialLoading, setInitialLoading] = React.useState(isPublicGuardian);
 
   const isGuardianView = Boolean(connectedProfile);
@@ -71,9 +73,8 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile: studentProf
     } catch (err) { console.warn('Cloud guardian lookup failed:', err); }
     setLoadingConnect(false);
     setInitialLoading(false);
-    if (!studentProfile?.setupCompleted) {
-      setErrorMsg(t('guardian.invalidCode', lang));
-    }
+    // Always show error so user knows the lookup failed (even if logged in)
+    setErrorMsg(t('guardian.invalidCode', lang));
   };
 
   const handleFullConnect = async () => {
@@ -107,6 +108,21 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile: studentProf
     if (!encouragementText.trim()) return;
     setEncouragementSent(true); setEncouragementText('');
     setTimeout(() => setEncouragementSent(false), 3000);
+  };
+
+  const handlePublishNow = async () => {
+    if (!studentProfile || !studentProfile.setupCompleted) return;
+    setPublishingNow(true);
+    setErrorMsg(null);
+    try {
+      await publishGuardianData(studentProfile);
+      setSuccessMsg(t('guardian.publishSuccess', lang));
+    } catch {
+      setErrorMsg(t('guardian.publishFailed', lang));
+    } finally {
+      setPublishingNow(false);
+      setTimeout(() => setSuccessMsg(null), 4000);
+    }
   };
 
   const handleRefreshDashboard = async () => {
@@ -220,6 +236,9 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile: studentProf
                       </Button>
                       <Button size="sm" variant="primary" icon={copiedLink ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />} onClick={handleCopyShareLink}>
                         {copiedLink ? t('guardian.copied', lang) : t('guardian.shareLink', lang)}
+                      </Button>
+                      <Button size="sm" variant="glass" icon={publishingNow ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} onClick={handlePublishNow} disabled={publishingNow}>
+                        {publishingNow ? '...' : t('guardian.publishNow', lang)}
                       </Button>
                     </div>
                   </div>
