@@ -277,14 +277,14 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile: studentProf
                     <h3 className="text-lg font-bold text-white flex items-center gap-2"><Eye className="w-5 h-5 text-electric-400" />{t('guardian.liveReport', lang)}</h3>
                     <Badge variant="electric">{connectedStudentName || targetProfile.name}</Badge>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                     <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-center">
                       <span className="block text-xl font-extrabold text-white">{report.studyTimeFormatted}</span>
                       <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.studyTime', lang)}</span>
                     </div>
                     <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-center">
-                      <span className="block text-xl font-extrabold text-electric-400">{formatNumber(report.pagesCompletedToday, lang)}</span>
-                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.pagesRead', lang)}</span>
+                      <span className="block text-xl font-extrabold text-electric-400">{report.totalStudyTimeFormatted}</span>
+                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.totalStudyTime', lang)}</span>
                     </div>
                     <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-center">
                       <span className="block text-xl font-extrabold text-amber-400">{formatNumber(targetProfile.gamification?.currentStreak || 1, lang)} {t('guardian.days', lang)}</span>
@@ -293,6 +293,21 @@ export const GuardianPage: React.FC<GuardianPageProps> = ({ profile: studentProf
                     <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-center">
                       <span className="block text-xl font-extrabold text-emerald-400">{report.overallProgressPercent}%</span>
                       <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.syllabusDone', lang)}</span>
+                    </div>
+                  </div>
+                  {/* Today's detail row */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                    <div className="p-3 rounded-xl bg-electric-500/8 border border-electric-500/15 text-center">
+                      <span className="block text-lg font-extrabold text-electric-400">{formatNumber(report.pagesCompletedToday, lang)}</span>
+                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.pagesToday', lang)}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-electric-500/8 border border-electric-500/15 text-center">
+                      <span className="block text-lg font-extrabold text-electric-400">{formatNumber(report.sessionsCount, lang)}</span>
+                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.sessionsToday', lang)}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-electric-500/8 border border-electric-500/15 text-center">
+                      <span className="block text-lg font-extrabold text-electric-400">{formatNumber(targetProfile.gamification?.level || 1, lang)}</span>
+                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">{t('guardian.level', lang)}</span>
                     </div>
                   </div>
                   <div className="space-y-3">

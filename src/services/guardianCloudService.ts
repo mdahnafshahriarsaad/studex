@@ -143,16 +143,25 @@ export async function lookupGuardianByCode(
  */
 export function reconstructProfileFromSnapshot(snap: GuardianSnapshot): UserProfile {
   const todayStr = new Date().toISOString().split('T')[0];
-  const todaySessions = (snap.studyHistory || []).filter(
-    (s) => s.timestamp.split('T')[0] === todayStr
+
+  // Pass ALL study sessions — generateDailyReportSummary handles the today filter
+  const allSessions = (snap.studyHistory || []);
+
+  // Derive lastStudyDate from the most recent session
+  const sortedSessions = [...allSessions].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
-  const totalTodayMinutes = todaySessions.reduce((sum, s) => sum + s.durationMinutes, 0);
+  const lastStudyDate = sortedSessions.length > 0
+    ? sortedSessions[0].timestamp.split('T')[0]
+    : '';
 
   return {
     name: snap.studentName,
     avatar: '🎓',
     selectedClass: snap.studentClass as any,
-    dailyStudyTime: '2 Hours',
+    dailyStudyTime: snap.gamification.totalStudyMinutes
+      ? `${Math.floor(snap.gamification.totalStudyMinutes / 60)} Hours`
+      : '2 Hours',
     preferredStudyTime: 'Evening',
     examInfo: { name: snap.examInfo.name, date: snap.examInfo.date },
     subjects: snap.subjects.map((s, idx) => ({
@@ -175,11 +184,11 @@ export function reconstructProfileFromSnapshot(snap: GuardianSnapshot): UserProf
       levelTitle: snap.gamification.levelTitle,
       currentStreak: snap.gamification.currentStreak,
       longestStreak: snap.gamification.longestStreak,
-      lastStudyDate: todaySessions.length > 0 ? todayStr : '',
+      lastStudyDate,
       totalStudyMinutes: snap.gamification.totalStudyMinutes,
       achievements: [],
     },
-    studyHistory: todaySessions.map((s, i) => ({
+    studyHistory: allSessions.map((s, i) => ({
       id: `sess-${i}`,
       subjectId: '',
       subjectName: '',
