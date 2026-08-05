@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Target, Compass, Play, BookOpen, BarChart2, User, ShieldCheck, Smartphone, Settings, Info, CalendarDays } from 'lucide-react';
+import { Home, Target, Compass, Play, BookOpen, BarChart2, User, ShieldCheck, Smartphone, Settings, Info, CalendarDays, Rocket } from 'lucide-react';
 import { APP_INFO } from '../../utils/constants';
 import { AppSettings } from '../../types';
 import { t } from '../../utils/i18n';
@@ -23,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ settings }) => {
     { path: '/profile', label: t('nav.profile', lang), icon: User },
     { path: '/guardian', label: t('nav.guardian', lang), icon: ShieldCheck },
     { path: '/download-app', label: t('nav.downloadApp', lang), icon: Smartphone },
+    { path: '/future-plans', label: t('nav.futurePlans', lang), icon: Rocket },
     { path: '/settings', label: t('nav.settings', lang), icon: Settings },
   ];
 

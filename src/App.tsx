@@ -16,6 +16,7 @@ import { GuardianPage } from './pages/GuardianPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AboutPage } from './pages/AboutPage';
+import { FuturePlansPage } from './pages/FuturePlansPage';
 import { AuthModal } from './pages/AuthModal';
 import { CalendarPage } from './pages/CalendarPage';
 
@@ -194,6 +195,7 @@ export const App: React.FC = () => {
             }
           />
           <Route path="about" element={<AboutPage />} />
+          <Route path="future-plans" element={<FuturePlansPage />} />
           <Route path="calendar" element={<CalendarPage />} />
         </Route>
 
