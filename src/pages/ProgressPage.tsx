@@ -1,26 +1,30 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { UserProfile } from '../types';
+import { UserProfile, AppSettings } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { t, formatNumber, translateSubjectName } from '../utils/i18n';
 import {
   BarChart2, CheckCircle2, TrendingUp, Award, BookOpen, RefreshCw, AlertCircle, CheckSquare, Square, Plus
 } from 'lucide-react';
 
 interface ProgressPageProps {
   profile: UserProfile;
+  settings?: AppSettings;
   onToggleRevisionComplete?: (revisionId: string) => void;
   onTriggerMissedRecovery?: (missedPages: number) => void;
 }
 
 export const ProgressPage: React.FC<ProgressPageProps> = ({
   profile,
+  settings,
   onToggleRevisionComplete,
   onTriggerMissedRecovery,
 }) => {
-  const [missedInput, setMissedInput] = useState<string>('20');
-  const [recoveryTriggered, setRecoveryTriggered] = useState<boolean>(false);
+  const lang = settings?.language || 'English';
+  const [missedInput, setMissedInput] = React.useState<string>('20');
+  const [recoveryTriggered, setRecoveryTriggered] = React.useState<boolean>(false);
 
   const totalPages = profile.subjects.reduce((sum, s) => sum + (s.totalPages || 0), 0);
   const completedPages = profile.subjects.reduce((sum, s) => sum + (s.completedPages || 0), 0);
@@ -39,9 +43,9 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
     <div className="space-y-6 max-w-5xl mx-auto pb-12 select-none">
       {/* Page Title */}
       <div>
-        <h1 className="text-3xl font-extrabold text-white">Study Analytics & Spaced Revisions</h1>
+        <h1 className="text-3xl font-extrabold text-white">{t('progress.title', lang)}</h1>
         <p className="text-neutral-400 text-sm mt-1">
-          Mathematical syllabus completion breakdown and spaced repetition schedule for <span className="text-electric-400 font-semibold">{profile.name}</span>.
+          {t('progress.subtitle', lang)} <span className="text-electric-400 font-semibold">{profile.name}</span>.
         </p>
       </div>
 
@@ -52,8 +56,8 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Overall Completion</span>
-            <h3 className="text-2xl font-extrabold text-white mt-0.5">{avgProgress}%</h3>
+            <span className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{t('progress.overallCompletion', lang)}</span>
+            <h3 className="text-2xl font-extrabold text-white mt-0.5">{formatNumber(avgProgress, lang)}%</h3>
           </div>
         </GlassCard>
 
@@ -62,8 +66,8 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Completed Pages</span>
-            <h3 className="text-2xl font-extrabold text-white mt-0.5">{completedPages} / {totalPages}</h3>
+            <span className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{t('progress.completedPagesLabel', lang)}</span>
+            <h3 className="text-2xl font-extrabold text-white mt-0.5">{formatNumber(completedPages, lang)} / {formatNumber(totalPages, lang)}</h3>
           </div>
         </GlassCard>
 
@@ -72,8 +76,8 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Remaining Pages</span>
-            <h3 className="text-2xl font-extrabold text-white mt-0.5">{remainingPages} Pages</h3>
+            <span className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">{t('progress.remainingPagesLabel', lang)}</span>
+            <h3 className="text-2xl font-extrabold text-white mt-0.5">{formatNumber(remainingPages, lang)} {t('dashboard.pages', lang)}</h3>
           </div>
         </GlassCard>
       </div>
@@ -84,13 +88,13 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-electric-400" />
-              <h3 className="text-lg font-bold text-white">Missed Target Recovery Engine</h3>
+              <h3 className="text-lg font-bold text-white">{t('progress.missedRecovery', lang)}</h3>
             </div>
-            <Badge variant="electric">No Overload Mode</Badge>
+            <Badge variant="electric">{t('progress.noOverloadMode', lang)}</Badge>
           </div>
 
           <p className="text-xs text-neutral-400 leading-relaxed">
-            If you missed yesterday's target, Studex distributes the missed pages across the next 5 days without overloading a single day.
+            {t('progress.missedDesc', lang)}
           </p>
 
           <div className="flex items-center gap-3 pt-1">
@@ -99,18 +103,18 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
               min="1"
               value={missedInput}
               onChange={(e) => setMissedInput(e.target.value)}
-              placeholder="Missed pages (e.g. 20)"
+              placeholder={t('progress.enterMissed', lang)}
               className="w-44 px-3 py-2 rounded-xl glass-input text-xs text-white"
             />
             <Button variant="primary" size="sm" onClick={handleTriggerRecovery}>
-              Distribute Over 5 Days
+              {t('progress.triggerRecovery', lang)}
             </Button>
           </div>
 
           {recoveryTriggered && profile.missedTargetRecovery && (
             <div className="p-3 rounded-xl bg-electric-500/15 border border-electric-500/30 text-xs text-electric-400 flex items-center justify-between">
               <span>
-                Recovery set! Missed {profile.missedTargetRecovery.missedPages} pages &bull; Distributed +{profile.missedTargetRecovery.extraPagesPerDay} extra pages/day for 5 days.
+                {t('progress.recoveryActive', lang)} {profile.missedTargetRecovery.missedPages} {t('dashboard.pages', lang)} &bull; +{formatNumber(profile.missedTargetRecovery.extraPagesPerDay, lang)} {t('progress.recoveryDesc', lang)}
               </span>
               <CheckCircle2 className="w-4 h-4" />
             </div>
@@ -123,14 +127,14 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <RefreshCw className="w-5 h-5 text-electric-400" />
-            Spaced Repetition Revision Schedule (Day 1, 3, 7)
+            {t('progress.revisionSchedule', lang)}
           </h3>
-          <Badge variant="glass">Ebbinghaus Memory Curve</Badge>
+          <Badge variant="glass">{t('progress.ebbinghaus', lang)}</Badge>
         </div>
 
         <div className="space-y-3">
           {(!profile.revisions || profile.revisions.length === 0) ? (
-            <p className="text-xs text-neutral-500 text-center py-4">No revision sessions active yet. Mark a chapter completed to generate automated spaced repetition schedules!</p>
+            <p className="text-xs text-neutral-500 text-center py-4">{t('progress.noRevisions', lang)}</p>
           ) : (
             profile.revisions.map((rev) => (
               <div key={rev.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
@@ -146,13 +150,13 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
                       {rev.chapterName}
                     </span>
                     <span className="text-neutral-400 text-[11px]">
-                      {rev.subjectName} &bull; Stage: <strong className="text-electric-400">{rev.stage}</strong> &bull; Due: {rev.dueDate}
+                      {translateSubjectName(rev.subjectName, lang)} &bull; {t('progress.stage', lang)}: <strong className="text-electric-400">{rev.stage}</strong> &bull; {t('progress.dueDate', lang)}: {rev.dueDate}
                     </span>
                   </div>
                 </div>
 
                 <Badge variant={rev.completed ? 'glass' : 'electric'}>
-                  {rev.completed ? 'Completed' : 'Pending'}
+                  {rev.completed ? t('progress.done', lang) : t('progress.pending', lang)}
                 </Badge>
               </div>
             ))
@@ -165,7 +169,7 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <BarChart2 className="w-5 h-5 text-electric-400" />
-            Subject Syllabus Breakdown
+            {t('progress.subjectBreakdown', lang)}
           </h3>
         </div>
 
@@ -173,9 +177,9 @@ export const ProgressPage: React.FC<ProgressPageProps> = ({
           {profile.subjects.map((subj) => (
             <div key={subj.id} className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-white">{subj.name}</span>
+                <span className="font-semibold text-white">{translateSubjectName(subj.name, lang)}</span>
                 <span className="text-neutral-400">
-                  {subj.completedPages} / {subj.totalPages} Pages Completed &bull; <strong className="text-electric-400">{subj.progressPercent}%</strong>
+                  {formatNumber(subj.completedPages, lang)} / {formatNumber(subj.totalPages, lang)} {t('progress.pagesLabel', lang)} &bull; <strong className="text-electric-400">{subj.progressPercent}%</strong>
                 </span>
               </div>
               <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5">

@@ -1,20 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { UserProfile } from '../types';
+import { UserProfile, AppSettings } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { t, formatNumber, translateSubjectName } from '../utils/i18n';
 import { generateDailyStudyPlan, calculateDailyPageTarget, calculateRemainingDays } from '../services/plannerEngine';
 import { Target, Clock, BookOpen, CheckCircle2, Play, AlertCircle, RefreshCw, Calendar, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface TodaysTargetPageProps {
   profile: UserProfile;
+  settings?: AppSettings;
   onToggleChapterComplete?: (subjectId: string, chapterId: string) => void;
 }
 
-export const TodaysTargetPage: React.FC<TodaysTargetPageProps> = ({ profile, onToggleChapterComplete }) => {
+export const TodaysTargetPage: React.FC<TodaysTargetPageProps> = ({ profile, settings, onToggleChapterComplete }) => {
   const navigate = useNavigate();
+  const lang = settings?.language || 'English';
 
   const totalPages = profile.subjects.reduce((sum, s) => sum + (s.totalPages || 0), 0);
   const completedPages = profile.subjects.reduce((sum, s) => sum + (s.completedPages || 0), 0);
@@ -41,24 +44,24 @@ export const TodaysTargetPage: React.FC<TodaysTargetPageProps> = ({ profile, onT
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5 text-electric-400" />
-                <span className="text-xs font-semibold uppercase tracking-widest text-electric-400">Daily Study Routine</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-electric-400">{t('dashboard.dailyStudyRoutine', lang)}</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-white">
-                Today's Target Plan <span className="inline-block text-electric-400">🎯</span>
+                {t('dashboard.todayTargetPlan', lang)} <span className="inline-block text-electric-400">🎯</span>
               </h1>
               <p className="text-neutral-400 text-sm mt-1">
-                Allocated across <strong className="text-white">{todayRoutine.length} Subjects</strong> today. Target: <strong className="text-electric-400">{totalDailyTarget} Pages Total</strong>.
+                {t('dashboard.allocatedSubjects', lang)} <strong className="text-white">{formatNumber(todayRoutine.length, lang)} {t('dashboard.subjects', lang)}</strong> {t('dashboard.subjectsToday', lang)} <strong className="text-electric-400">{formatNumber(totalDailyTarget, lang)} {t('dashboard.pagesTotal', lang)}</strong>.
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[100px]">
-                <span className="block text-2xl font-extrabold text-white">{totalDailyTarget}</span>
-                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Pages Today</span>
+                <span className="block text-2xl font-extrabold text-white">{formatNumber(totalDailyTarget, lang)}</span>
+                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('dashboard.pagesToday', lang)}</span>
               </div>
               <div className="p-3.5 rounded-2xl bg-electric-500/15 border border-electric-500/30 text-center min-w-[100px]">
                 <span className="block text-2xl font-extrabold text-electric-400">{totalEstMinutes}m</span>
-                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Est. Time</span>
+                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('dashboard.estTimeShort', lang)}</span>
               </div>
             </div>
           </div>
@@ -69,12 +72,12 @@ export const TodaysTargetPage: React.FC<TodaysTargetPageProps> = ({ profile, onT
       {todayRoutine.length === 0 ? (
         <GlassCard className="p-12 text-center border-white/10 bg-white/5 space-y-4">
           <CheckCircle2 className="w-16 h-16 text-emerald-400 mx-auto" />
-          <h3 className="text-xl font-bold text-white">All Daily Targets Completed!</h3>
+          <h3 className="text-xl font-bold text-white">{t('dashboard.allDailyCompleted', lang)}</h3>
           <p className="text-sm text-neutral-400 max-w-md mx-auto">
-            You have completed all scheduled reading targets for today or haven't added syllabus chapters yet.
+            {t('dashboard.allDailyDesc', lang)}
           </p>
           <Button variant="primary" size="md" icon={<BookOpen className="w-4 h-4" />} onClick={() => navigate('/subjects')}>
-            Manage Syllabus & Subjects
+            {t('dashboard.manageSyllabusSubjects', lang)}
           </Button>
         </GlassCard>
       ) : (
@@ -82,9 +85,9 @@ export const TodaysTargetPage: React.FC<TodaysTargetPageProps> = ({ profile, onT
           <div className="flex items-center justify-between px-1">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-electric-400" />
-              Multi-Subject Target Routine ({todayRoutine.length} Subjects)
+              {t('dashboard.multiSubjectRoutine', lang)} ({formatNumber(todayRoutine.length, lang)} {t('dashboard.subjects', lang)})
             </h3>
-            <Badge variant="electric">Target Rounding: Math.ceil</Badge>
+            <Badge variant="electric">{t('dashboard.targetRounding', lang)}</Badge>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -100,48 +103,48 @@ export const TodaysTargetPage: React.FC<TodaysTargetPageProps> = ({ profile, onT
                     <div className="flex items-center justify-between border-b border-white/10 pb-3">
                       <div>
                         <span className="text-[10px] text-electric-400 font-bold uppercase tracking-widest">
-                          Subject {idx + 1}
+                          {t('dashboard.subject', lang)} {formatNumber(idx + 1, lang)}
                         </span>
-                        <h4 className="text-lg font-extrabold text-white">{item.subjectName}</h4>
+                        <h4 className="text-lg font-extrabold text-white">{translateSubjectName(item.subjectName, lang)}</h4>
                       </div>
                       <Badge variant={item.difficulty === 'Hard' ? 'neutral' : item.difficulty === 'Medium' ? 'electric' : 'glass'}>
-                        {item.difficulty}
+                        {t(`difficulty.${item.difficulty.toLowerCase()}` as any, lang)}
                       </Badge>
                     </div>
 
                     <div className="space-y-1.5">
-                      <div className="text-xs text-neutral-400">Chapter</div>
+                      <div className="text-xs text-neutral-400">{t('dashboard.chapter', lang)}</div>
                       <div className="text-sm font-semibold text-white">{item.chapterName}</div>
                     </div>
 
                     <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1 text-xs">
                       <div className="flex justify-between text-neutral-300">
-                        <span>Pages Target:</span>
-                        <strong className="text-white">Pages {item.startPage} – {item.endPage}</strong>
+                        <span>{t('dashboard.pagesTarget', lang)}:</span>
+                        <strong className="text-white">{t('dashboard.pages', lang)} {formatNumber(item.startPage, lang)} – {formatNumber(item.endPage, lang)}</strong>
                       </div>
                       <div className="flex justify-between text-neutral-300">
-                        <span>Total Reading:</span>
-                        <strong className="text-electric-400">{item.pagesToRead} Pages</strong>
+                        <span>{t('dashboard.totalReading', lang)}:</span>
+                        <strong className="text-electric-400">{formatNumber(item.pagesToRead, lang)} {t('dashboard.pages', lang)}</strong>
                       </div>
                       <div className="flex justify-between text-neutral-300">
-                        <span>Estimated Time:</span>
+                        <span>{t('dashboard.estTime', lang)}:</span>
                         <strong className="text-white flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5 text-electric-400" />
-                          {item.estimatedMinutes} Mins
+                          {formatNumber(item.estimatedMinutes, lang)} {t('dashboard.mins', lang)}
                         </strong>
                       </div>
                     </div>
                   </div>
 
                   <div className="pt-4 border-t border-white/10 mt-4 flex items-center justify-between">
-                    <span className="text-xs text-amber-400 font-medium">Status: Incomplete</span>
+                    <span className="text-xs text-amber-400 font-medium">{t('dashboard.statusIncomplete', lang)}</span>
                     <Button
                       variant="primary"
                       size="sm"
                       icon={<Play className="w-3.5 h-3.5 fill-black" />}
                       onClick={() => onToggleChapterComplete && onToggleChapterComplete(item.subjectId, item.chapterId)}
                     >
-                      Complete
+                      {t('dashboard.complete', lang)}
                     </Button>
                   </div>
                 </GlassCard>

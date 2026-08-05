@@ -4,7 +4,7 @@ import { UserProfile, AppSettings } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { t } from '../utils/i18n';
+import { t, formatNumber, translateSubjectName, getCurrentLanguage } from '../utils/i18n';
 import {
   generateDailyStudyPlan, calculateSubjectPriorities, calculateDailyPageTarget, calculateRemainingDays
 } from '../services/plannerEngine';
@@ -32,9 +32,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return t('dashboard.greeting.morning', lang);
+    if (hour < 18) return t('dashboard.greeting.afternoon', lang);
+    return t('dashboard.greeting.evening', lang);
   };
 
   const totalPages = profile.subjects.reduce((sum, s) => sum + (s.totalPages || 0), 0);
@@ -67,25 +67,25 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-2xl">{profile.avatar || '🎓'}</span>
-                <span className="text-xs font-semibold uppercase tracking-widest text-electric-400">Smart Academic Planner</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-electric-400">{t('dashboard.smartAcademicPlanner', lang)}</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-white">
                 {getGreeting()}, {profile.name || 'Saad'} <span className="inline-block animate-pulse">👋</span>
               </h1>
               <p className="text-neutral-400 text-sm md:text-base mt-1">
-                Syllabus target: <span className="text-white font-semibold">{totalDailyTarget} Pages/day</span> ({baseTarget} base {extraRecovery > 0 ? `+ ${extraRecovery} recovery` : ''}).
+                {t('dashboard.syllabusTarget', lang)}: <span className="text-white font-semibold">{formatNumber(totalDailyTarget, lang)} {t('dashboard.pagesDay', lang)}</span> ({baseTarget} {t('dashboard.base', lang)} {extraRecovery > 0 ? `+ ${formatNumber(extraRecovery, lang)} ${t('dashboard.recovery', lang)}` : ''}).
               </p>
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center min-w-[90px]">
-                <span className="block text-2xl font-extrabold text-white">{overallProgressPercent}%</span>
-                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Overall</span>
+                <span className="block text-2xl font-extrabold text-white">{formatNumber(overallProgressPercent, lang)}%</span>
+                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('dashboard.overall', lang)}</span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-electric-500/15 border border-electric-500/30 text-center min-w-[100px]">
-                <span className="block text-2xl font-extrabold text-electric-400">{remainingPages}</span>
-                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Pages Left</span>
+                <span className="block text-2xl font-extrabold text-electric-400">{formatNumber(remainingPages, lang)}</span>
+                <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('dashboard.pagesLeft', lang)}</span>
               </div>
             </div>
           </div>
@@ -100,8 +100,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <Target className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Today's Target</h4>
-              <span className="text-xs text-neutral-400">{todayPlanItems.length} Subjects Scheduled</span>
+              <h4 className="font-bold text-white text-sm">{t('dashboard.todaysTargetCard', lang)}</h4>
+              <span className="text-xs text-neutral-400">{formatNumber(todayPlanItems.length, lang)} {t('dashboard.subjectsScheduled', lang)}</span>
             </div>
           </div>
           <span className="text-xs text-electric-400 font-semibold">&rarr;</span>
@@ -113,8 +113,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <Compass className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Complete Syllabus Plan</h4>
-              <span className="text-xs text-neutral-400">Full Exam Roadmap</span>
+              <h4 className="font-bold text-white text-sm">{t('dashboard.completeSyllabusPlan', lang)}</h4>
+              <span className="text-xs text-neutral-400">{t('dashboard.fullExamRoadmap', lang)}</span>
             </div>
           </div>
           <span className="text-xs text-emerald-400 font-semibold">&rarr;</span>
@@ -126,8 +126,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Download App</h4>
-              <span className="text-xs text-neutral-400">Android APK & PWA</span>
+              <h4 className="font-bold text-white text-sm">{t('dashboard.downloadAppCard', lang)}</h4>
+              <span className="text-xs text-neutral-400">{t('dashboard.androidPWA', lang)}</span>
             </div>
           </div>
           <span className="text-xs text-indigo-400 font-semibold">&rarr;</span>
@@ -141,14 +141,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex items-center gap-3">
               <AlertCircle className="w-6 h-6 text-amber-400 flex-shrink-0" />
               <div>
-                <h4 className="font-bold text-white text-sm">No Syllabus Added Yet</h4>
+                <h4 className="font-bold text-white text-sm">{t('dashboard.noSyllabusAdded', lang)}</h4>
                 <p className="text-xs text-neutral-300">
-                  Please add your syllabus chapters first to generate a mathematical study plan.
+                  {t('dashboard.noSyllabusDesc', lang)}
                 </p>
               </div>
             </div>
             <Button variant="primary" size="sm" icon={<BookOpen className="w-4 h-4" />} onClick={() => navigate('/subjects')}>
-              Add Syllabus Now
+              {t('dashboard.addSyllabusNow', lang)}
             </Button>
           </div>
         </GlassCard>
@@ -161,10 +161,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <div className="flex items-center gap-2 text-electric-400 font-medium">
               <RefreshCw className="w-4 h-4 animate-spin" />
               <span>
-                Recovery Active: +{profile.missedTargetRecovery.extraPagesPerDay} extra pages/day distributed over next {profile.missedTargetRecovery.daysRemaining} days.
+                {t('dashboard.recoveryActive', lang)}: +{formatNumber(profile.missedTargetRecovery.extraPagesPerDay, lang)} {t('dashboard.extraPages', lang)} {formatNumber(profile.missedTargetRecovery.daysRemaining, lang)} {t('dashboard.days', lang)}
               </span>
             </div>
-            <Badge variant="electric">No Overload Mode</Badge>
+            <Badge variant="electric">{t('dashboard.noOverload', lang)}</Badge>
           </div>
         </GlassCard>
       )}
@@ -179,20 +179,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-electric-400" />
-                  <h3 className="text-lg font-bold text-white">Today's Multi-Subject Routine</h3>
+                  <h3 className="text-lg font-bold text-white">{t('dashboard.todayRoutine', lang)}</h3>
                 </div>
                 <button onClick={() => navigate('/todays-target')} className="text-xs text-electric-400 hover:underline font-semibold">
-                  View Full Target Routine ({todayPlanItems.length} Subjects) &rarr;
+                  {t('dashboard.viewFullRoutine', lang)} ({formatNumber(todayPlanItems.length, lang)} {t('dashboard.subjects', lang)}) &rarr;
                 </button>
               </div>
 
               {todayPlanItems.length === 0 ? (
                 <div className="p-8 text-center border border-white/10 rounded-2xl bg-white/5 space-y-3">
                   <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                  <h4 className="font-bold text-white text-base">All Daily Targets Clear!</h4>
-                  <p className="text-xs text-neutral-400">Add or expand syllabus chapters to generate new daily study targets.</p>
+                  <h4 className="font-bold text-white text-base">{t('dashboard.allTargetsClear', lang)}</h4>
+                  <p className="text-xs text-neutral-400">{t('dashboard.allTargetsDesc', lang)}</p>
                   <Button variant="glass" size="sm" onClick={() => navigate('/subjects')}>
-                    Manage Syllabus
+                    {t('dashboard.manageSyllabus', lang)}
                   </Button>
                 </div>
               ) : (
@@ -201,22 +201,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                     <div key={item.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 hover:border-electric-500/40 transition">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
                         <div>
-                          <span className="text-[10px] text-electric-400 font-bold uppercase tracking-wider">Subject {idx + 1}: {item.subjectName}</span>
+                          <span className="text-[10px] text-electric-400 font-bold uppercase tracking-wider">{t('dashboard.subject', lang)} {formatNumber(idx + 1, lang)}: {translateSubjectName(item.subjectName, lang)}</span>
                           <h4 className="text-base font-bold text-white mt-0.5">{item.chapterName}</h4>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant={item.difficulty === 'Easy' ? 'glass' : item.difficulty === 'Medium' ? 'electric' : 'neutral'}>
-                            {item.difficulty}
+                            {t(`difficulty.${item.difficulty.toLowerCase()}` as any, lang)}
                           </Badge>
                           <span className="text-xs text-neutral-400 flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5 text-electric-400" />
-                            {item.estimatedMinutes} mins
+                            {formatNumber(item.estimatedMinutes, lang)} {t('dashboard.mins', lang)}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-neutral-300">
-                        <span>Reading Target: <strong className="text-white">Pages {item.startPage} – {item.endPage}</strong> ({item.pagesToRead} Pages)</span>
+                        <span>{t('dashboard.readingTarget', lang)}: <strong className="text-white">{t('dashboard.pages', lang)} {formatNumber(item.startPage, lang)} – {formatNumber(item.endPage, lang)}</strong> ({formatNumber(item.pagesToRead, lang)} {t('dashboard.pages', lang)})</span>
                         <Button
                           variant="primary"
                           size="sm"
@@ -227,7 +227,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                             }
                           }}
                         >
-                          Mark Complete
+                          {t('dashboard.markComplete', lang)}
                         </Button>
                       </div>
                     </div>
@@ -243,10 +243,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <BarChart2 className="w-5 h-5 text-electric-400" />
-                  <h3 className="text-lg font-bold text-white">Subject Progress</h3>
+                  <h3 className="text-lg font-bold text-white">{t('dashboard.subjectProgress', lang)}</h3>
                 </div>
                 <button onClick={() => navigate('/subjects')} className="text-xs text-electric-400 hover:text-white font-medium transition">
-                  Manage Subjects &rarr;
+                  {t('dashboard.manageSubjects', lang)} &rarr;
                 </button>
               </div>
 
@@ -254,9 +254,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 {profile.subjects.map((subj) => (
                   <div key={subj.id} className="space-y-1.5 p-3 rounded-xl bg-white/5 border border-white/10">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-white">{subj.name}</span>
+                      <span className="font-semibold text-white">{translateSubjectName(subj.name, lang)}</span>
                       <span className="text-neutral-400">
-                        {subj.completedPages} / {subj.totalPages} Pages &bull; <strong className="text-electric-400">{subj.progressPercent}%</strong>
+                        {formatNumber(subj.completedPages, lang)} / {formatNumber(subj.totalPages, lang)} {t('dashboard.pages', lang)} &bull; <strong className="text-electric-400">{subj.progressPercent}%</strong>
                       </span>
                     </div>
                     <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
@@ -279,22 +279,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <GlassCard className="border-electric-500/40 shadow-glow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Compass className="w-5 h-5 text-electric-400" />
-                <h3 className="text-lg font-bold text-white">Recommended Priority</h3>
+                <h3 className="text-lg font-bold text-white">{t('dashboard.recommendedPriority', lang)}</h3>
               </div>
 
               {topRecommended ? (
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xl font-extrabold text-white">{topRecommended.subjectName}</h4>
-                    <Badge variant="electric">Priority Score: {topRecommended.score}</Badge>
+                    <h4 className="text-xl font-extrabold text-white">{translateSubjectName(topRecommended.subjectName, lang)}</h4>
+                    <Badge variant="electric">{t('dashboard.priorityScore', lang)}: {topRecommended.score}</Badge>
                   </div>
                   <p className="text-xs text-neutral-300 leading-relaxed font-normal">
-                    <strong className="text-electric-400">Reason: </strong>
+                    <strong className="text-electric-400">{t('dashboard.reason', lang)}: </strong>
                     {topRecommended.reason}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-neutral-400">All subjects completed!</p>
+                <p className="text-xs text-neutral-400">{t('dashboard.allSubjectsCompleted', lang)}</p>
               )}
             </GlassCard>
           </motion.div>
@@ -305,19 +305,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-electric-400" />
-                  <h3 className="text-lg font-bold text-white">Exam Target</h3>
+                  <h3 className="text-lg font-bold text-white">{t('dashboard.examTarget', lang)}</h3>
                 </div>
-                <Badge variant="glass">Days Remaining</Badge>
+                <Badge variant="glass">{t('dashboard.daysRemainingBadge', lang)}</Badge>
               </div>
 
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
                 <div>
-                  <h5 className="font-bold text-base text-white">{profile.examInfo?.name || 'Target Exam'}</h5>
+                  <h5 className="font-bold text-base text-white">{profile.examInfo?.name || t('dashboard.targetExam', lang)}</h5>
                   <span className="text-xs text-neutral-400">{profile.examInfo?.date || '2026-08-30'}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-3xl font-extrabold text-electric-400">{daysRemaining}</span>
-                  <span className="block text-[10px] uppercase text-neutral-400 tracking-wider">Days Left</span>
+                  <span className="text-3xl font-extrabold text-electric-400">{formatNumber(daysRemaining, lang)}</span>
+                  <span className="block text-[10px] uppercase text-neutral-400 tracking-wider">{t('dashboard.daysRemainingShort', lang)}</span>
                 </div>
               </div>
             </GlassCard>
@@ -329,20 +329,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <RefreshCw className="w-5 h-5 text-electric-400" />
-                  Spaced Revisions
+                  {t('dashboard.spacedRevisions', lang)}
                 </h3>
-                <Badge variant="glass">{activeRevisions.length} Due</Badge>
+                <Badge variant="glass">{formatNumber(activeRevisions.length, lang)} {t('dashboard.due', lang)}</Badge>
               </div>
 
               <div className="space-y-2">
                 {activeRevisions.length === 0 ? (
-                  <p className="text-xs text-neutral-500 text-center py-3">No pending revision sessions. Complete a chapter to schedule revisions!</p>
+                  <p className="text-xs text-neutral-500 text-center py-3">{t('dashboard.noRevisions', lang)}</p>
                 ) : (
                   activeRevisions.map((rev) => (
                     <div key={rev.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
                       <div>
                         <span className="font-semibold text-white block">{rev.chapterName}</span>
-                        <span className="text-[11px] text-neutral-400">{rev.subjectName} &bull; <strong className="text-electric-400">{rev.stage}</strong></span>
+                        <span className="text-[11px] text-neutral-400">{translateSubjectName(rev.subjectName, lang)} &bull; <strong className="text-electric-400">{rev.stage}</strong></span>
                       </div>
                       <button
                         onClick={() => onToggleRevisionComplete && onToggleRevisionComplete(rev.id)}
@@ -359,16 +359,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           {/* 6. QUICK ACTIONS */}
           <GlassCard>
-            <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
+            <h3 className="text-lg font-bold text-white mb-4">{t('dashboard.quickActions', lang)}</h3>
             <div className="grid grid-cols-1 gap-2.5">
               <Button variant="glass" size="md" fullWidth icon={<BookOpen className="w-4 h-4 text-electric-400" />} onClick={() => navigate('/subjects')}>
-                Subject & Syllabus Editor
+                {t('dashboard.subjectEditor', lang)}
               </Button>
               <Button variant="glass" size="md" fullWidth icon={<BarChart2 className="w-4 h-4 text-electric-400" />} onClick={() => navigate('/progress')}>
-                Spaced Revision Overview
+                {t('dashboard.revisionOverview', lang)}
               </Button>
               <Button variant="glass" size="md" fullWidth icon={<SettingsIcon className="w-4 h-4 text-electric-400" />} onClick={() => navigate('/settings')}>
-                Settings & Preferences
+                {t('dashboard.settingsPrefs', lang)}
               </Button>
             </div>
           </GlassCard>

@@ -3,30 +3,15 @@
 @tailwind utilities;
 
 /* ===================================================
-   BANGLA FONT OVERRIDE (must be AFTER tailwind utilities output)
-   These are unlayered so they beat all @layer rules.
-   !important ensures they beat any inline Tailwind utility.
+   BANGLA FONT — Google Fonts: Noto Sans Bengali + Hind Siliguri
+   Loaded via index.html <link> tag.
    =================================================== */
-@font-face {
-  font-family: 'Noto Sans Bengali';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: local('Noto Sans Bengali'), local('NotoSansBengali-Regular');
-}
-@font-face {
-  font-family: 'Hind Siliguri';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: local('Hind Siliguri'), local('HindSiliguri-Regular');
-}
-
 body.lang-bengali,
 body.lang-bengali *,
 body.lang-bengali *::before,
 body.lang-bengali *::after {
-  font-family: 'Noto Sans Bengali', 'Hind Siliguri', 'Noto Sans Bengali', system-ui, -apple-system, 'Segoe UI', sans-serif !important;
+  font-family: 'Noto Sans Bengali', 'Hind Siliguri', sans-serif !important;
+  letter-spacing: 0.01em;
 }
 
 /* ===================================================

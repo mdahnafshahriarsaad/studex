@@ -15,11 +15,13 @@ import { StudyPlan, StudySession, StudyPriority, CalendarView, StudyStatus, Task
 import { useUserStore } from '../hooks/useUserStore';
 import { HeatmapDay, MonthlySummary, SyllabusForecast, DayTooltipData, generateHeatmapData } from '../services/calendarEngine';
 import { GlassCard } from '../components/ui/GlassCard';
+import { t, getMonthNames, getDayNamesShort, getCurrentLanguage } from '../utils/i18n';
 
-// --─ helpers ----------------------------------------------------------------─
+// --─ helpers -----------------------------------------------------------------
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let MONTHS = getMonthNames('English');
+let DAYS_SHORT = getDayNamesShort('English');
+
 const PRIORITY_COLORS: Record<StudyPriority, string> = {
   Low: 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10',
   Medium: 'text-amber-400 border-amber-500/40 bg-amber-500/10',
@@ -925,6 +927,9 @@ const MonthlySummaryCard: React.FC<MonthlySummaryCardProps> = ({ summary }) => (
 
 // --─ Main CalendarPage ----------------------------------------------------
 export const CalendarPage: React.FC = () => {
+  const lang = getCurrentLanguage();
+  MONTHS = getMonthNames(lang);
+  DAYS_SHORT = getDayNamesShort(lang);
   const { profile, settings } = useUserStore();
   const store = useCalendarStore();
   const today = getTodayStr();

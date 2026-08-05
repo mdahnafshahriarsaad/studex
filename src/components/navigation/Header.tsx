@@ -75,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({ profile, settings, onOpenAuthMod
             className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-electric-600 to-electric-500 hover:brightness-110 border border-electric-400/80 text-black text-xs font-bold shadow-[0_0_20px_rgba(0,240,255,0.45)] transition-all transform hover:scale-[1.03] active:scale-[0.97]"
           >
             <Lock className="w-4 h-4" />
-            <span>Sign In</span>
+            <span>{t('header.signIn', lang)}</span>
           </button>
         )}
       </div>

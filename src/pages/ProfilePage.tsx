@@ -1,9 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { UserProfile } from '../types';
+import { UserProfile, AppSettings } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { t, formatNumber, translateSubjectName } from '../utils/i18n';
 import { calculateLevelFromXP } from '../services/gamificationService';
 import { getCurrentFirebaseUser, logoutAccount } from '../services/authService';
 import {
@@ -13,19 +14,16 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 
 interface ProfilePageProps {
   profile: UserProfile;
+  settings?: AppSettings;
 }
 
-export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
+export const ProfilePage: React.FC<ProfilePageProps> = ({ profile, settings }) => {
   const navigate = useNavigate();
+  const lang = settings?.language || 'English';
 
   const g = profile.gamification || {
-    xp: 150,
-    level: 1,
-    levelTitle: 'Beginner',
-    currentStreak: 1,
-    longestStreak: 1,
-    totalStudyMinutes: 45,
-    achievements: [],
+    xp: 150, level: 1, levelTitle: 'Beginner', currentStreak: 1, longestStreak: 1,
+    totalStudyMinutes: 45, achievements: [],
   };
 
   const { level, title, currentLevelXP, nextLevelXP } = calculateLevelFromXP(g.xp);
@@ -55,24 +53,24 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
                 <Badge variant="electric">{profile.selectedClass}</Badge>
               </div>
               <p className="text-xs text-neutral-400 mt-1">
-                Level {level} &bull; <strong className="text-electric-400">{title}</strong>
+                {t('profile.level', lang)} {formatNumber(level, lang)} &bull; <strong className="text-electric-400">{title}</strong>
               </p>
               <span className="text-[11px] text-neutral-500 block mt-0.5">
-                Member since {new Date(profile.createdAt || Date.now()).toLocaleDateString()}
+                {t('profile.memberSince', lang)} {new Date(profile.createdAt || Date.now()).toLocaleDateString()}
               </span>
             </div>
           </div>
 
           <Button variant="glass" size="sm" icon={<SettingsIcon className="w-4 h-4" />} onClick={() => navigate('/settings')}>
-            Edit Preferences
+            {t('profile.editPreferences', lang)}
           </Button>
         </div>
 
         {/* Level XP Progress Bar */}
         <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-white">Level {level} Experience</span>
-            <span className="text-electric-400 font-bold">{g.xp} / {nextLevelXP} XP</span>
+            <span className="font-semibold text-white">{t('profile.level', lang)} {formatNumber(level, lang)} {t('profile.experience', lang)}</span>
+            <span className="text-electric-400 font-bold">{formatNumber(g.xp, lang)} / {formatNumber(nextLevelXP, lang)} {t('profile.xp', lang)}</span>
           </div>
           <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden p-0.5">
             <motion.div
@@ -91,8 +89,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
           <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto mb-2">
             <Flame className="w-5 h-5" />
           </div>
-          <span className="block text-2xl font-extrabold text-white">{g.currentStreak || 1} Days</span>
-          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Active Streak</span>
+          <span className="block text-2xl font-extrabold text-white">{formatNumber(g.currentStreak || 1, lang)} {t('profile.days', lang)}</span>
+          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('profile.activeStreak', lang)}</span>
         </GlassCard>
 
         <GlassCard className="p-4 text-center">
@@ -100,23 +98,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
             <Clock className="w-5 h-5" />
           </div>
           <span className="block text-2xl font-extrabold text-white">{studyHours}h {studyMins}m</span>
-          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Total Focus Time</span>
+          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('profile.totalFocusTime', lang)}</span>
         </GlassCard>
 
         <GlassCard className="p-4 text-center">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto mb-2">
             <BookOpen className="w-5 h-5" />
           </div>
-          <span className="block text-2xl font-extrabold text-white">{completedPages} / {totalPages}</span>
-          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Pages Completed</span>
+          <span className="block text-2xl font-extrabold text-white">{formatNumber(completedPages, lang)} / {formatNumber(totalPages, lang)}</span>
+          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('profile.pagesCompleted', lang)}</span>
         </GlassCard>
 
         <GlassCard className="p-4 text-center">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mx-auto mb-2">
             <Layers className="w-5 h-5" />
           </div>
-          <span className="block text-2xl font-extrabold text-white">{completedChapters}</span>
-          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">Completed Chapters</span>
+          <span className="block text-2xl font-extrabold text-white">{formatNumber(completedChapters, lang)}</span>
+          <span className="text-[10px] uppercase text-neutral-400 font-semibold tracking-wider">{t('profile.completedChapters', lang)}</span>
         </GlassCard>
       </div>
 
@@ -134,17 +132,17 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white text-base">Email Account & Cloud Sync</h3>
+                    <h3 className="font-bold text-white text-base">{t('profile.emailCloudSync', lang)}</h3>
                     {firebaseUser ? (
-                      <Badge variant="electric">Verified Email</Badge>
+                      <Badge variant="electric">{t('profile.verifiedEmail', lang)}</Badge>
                     ) : (
-                      <Badge variant="neutral">Local Offline Profile</Badge>
+                      <Badge variant="neutral">{t('profile.localProfile', lang)}</Badge>
                     )}
                   </div>
                   <p className="text-xs text-neutral-400 mt-0.5">
                     {firebaseUser
-                      ? `Signed in as ${firebaseUser.email} &bull; Firebase Auth active`
-                      : 'Sign in with an email account to enable multi-device sync'}
+                      ? `${t('profile.signedInAs', lang)} ${firebaseUser.email} • ${t('profile.syncActive', lang)}`
+                      : t('profile.signInForSync', lang)}
                   </p>
                 </div>
               </div>
@@ -155,13 +153,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
                   size="sm"
                   icon={<LogOut className="w-4 h-4" />}
                   onClick={() => {
-                    if (confirm('Sign out of your email account?')) {
+                    if (confirm(t('profile.signOutConfirm', lang))) {
                       logoutAccount();
                       window.location.reload();
                     }
                   }}
                 >
-                  Sign Out ({firebaseUser?.email?.split('@')[0] || 'User'})
+                  {t('profile.signOut', lang)} ({firebaseUser?.email?.split('@')[0] || 'User'})
                 </Button>
               ) : (
                 <Button
@@ -170,7 +168,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
                   icon={<Lock className="w-4 h-4" />}
                   onClick={() => onOpenAuthModal && onOpenAuthModal()}
                 >
-                  Email Login / Sign Up
+                  {t('profile.emailLogin', lang)}
                 </Button>
               )}
             </div>
@@ -183,10 +181,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ profile }) => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-400" />
-            Achievements & Trophies
+            {t('profile.achievements', lang)}
           </h3>
           <Badge variant="glass">
-            {(g.achievements || []).filter((a) => a.unlocked).length} / {(g.achievements || []).length} Unlocked
+            {(g.achievements || []).filter((a) => a.unlocked).length} / {(g.achievements || []).length} {t('profile.unlocked', lang)}
           </Badge>
         </div>
 

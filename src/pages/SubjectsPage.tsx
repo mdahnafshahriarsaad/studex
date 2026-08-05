@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { t, formatNumber, translateSubjectName } from '../utils/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserProfile, ChapterDifficulty, SubjectItem, Chapter } from '../types';
 import { GlassCard } from '../components/ui/GlassCard';
@@ -11,6 +12,7 @@ import {
 
 interface SubjectsPageProps {
   profile: UserProfile;
+  settings?: { language?: 'English' | 'Bengali'; };
   onAddSubject: (name: string) => void;
   onEditSubject: (subjectId: string, newName: string) => void;
   onRemoveSubject: (id: string) => void;
@@ -262,6 +264,7 @@ function EditChapterForm({
 
 export const SubjectsPage: React.FC<SubjectsPageProps> = ({
   profile,
+  settings,
   onAddSubject,
   onEditSubject,
   onRemoveSubject,

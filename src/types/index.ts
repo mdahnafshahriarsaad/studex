@@ -171,4 +171,5 @@ export interface AppSettings {
   performanceMode: PerformanceMode;
   notifications: NotificationSettings;
   language: 'English' | 'Bengali';
+  useBanglaNumbers?: boolean;
 }
