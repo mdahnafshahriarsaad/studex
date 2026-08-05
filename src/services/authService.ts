@@ -240,7 +240,7 @@ export function getCurrentUserAccount(): { user: User; profile: UserProfile; set
   return { user, profile, settings };
 }
 
-/** Save profile+settings (no backend — localStorage only, keyed by UID). */
+/** Save profile+settings (localStorage only, keyed by UID) and publish guardian data to Firestore. */
 export function syncCurrentAccountData(profile: UserProfile, settings: AppSettings): void {
   const user = auth.currentUser;
   if (!user) return;
@@ -248,6 +248,11 @@ export function syncCurrentAccountData(profile: UserProfile, settings: AppSettin
   const uid = user.uid;
   saveUserProfile(profile, `studex_profile_${uid}`);
   saveAppSettings(settings, `studex_settings_${uid}`);
+
+  // Best-effort: publish guardian data to Firestore for cross-device access
+  import('./guardianCloudService').then(({ publishGuardianData }) => {
+    publishGuardianData(profile);
+  });
 }
 
 // ---- Legacy compatibility shims ----
@@ -307,22 +312,33 @@ export function findAccountByGuardianCode(code: string): UserAccount | null {
   return null;
 }
 
-// Stub for async guardian lookup (no backend anymore)
-export async function lookupGuardianStudentAsync(_code: string): Promise<{ student: any; profile: UserProfile } | null> {
-  // Backend guardian lookup is no longer available without the Express server
-  return null;
+// Cross-device guardian lookup via Firestore
+export async function lookupGuardianStudentAsync(code: string): Promise<{ student: any; profile: UserProfile } | null> {
+  const { lookupGuardianByCode, reconstructProfileFromSnapshot } = await import('./guardianCloudService');
+  const result = await lookupGuardianByCode(code);
+  if (!result) return null;
+  const profile = reconstructProfileFromSnapshot(result.snapshot);
+  return { student: { name: result.studentName }, profile };
 }
 
 export async function connectGuardianAsync(
-  _code: string,
-  _guardianName: string,
+  code: string,
+  guardianName: string,
   _guardianEmail?: string
 ): Promise<{ success: boolean; message: string; studentName?: string }> {
-  return { success: false, message: 'Guardian connection requires a backend server.' };
+  const { lookupGuardianByCode } = await import('./guardianCloudService');
+  const result = await lookupGuardianByCode(code);
+  if (!result) {
+    return { success: false, message: 'Invalid guardian code. Please check and try again.' };
+  }
+  return { success: true, message: `Connected to ${result.studentName}'s study dashboard.`, studentName: result.studentName };
 }
 
-export async function fetchGuardianDashboardAsync(_code: string): Promise<{ profile: UserProfile } | null> {
-  return null;
+export async function fetchGuardianDashboardAsync(code: string): Promise<{ profile: UserProfile } | null> {
+  const { lookupGuardianByCode, reconstructProfileFromSnapshot } = await import('./guardianCloudService');
+  const result = await lookupGuardianByCode(code);
+  if (!result) return null;
+  return { profile: reconstructProfileFromSnapshot(result.snapshot) };
 }
 
 // ---- Cross-tab sync (BroadcastChannel only, no fake backend) ----
