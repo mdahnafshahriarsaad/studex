@@ -26,7 +26,7 @@ export const AboutPage: React.FC = () => {
           </div>
 
           <div>
-            <img src="/wordmark.png" alt="Studex Wordmark" className="h-20 object-contain mx-auto" />
+            <img src="/wordmark.png" alt="Studex Wordmark" className="h-28 sm:h-30 md:h-32 object-contain mx-auto" />
             <p className="text-base text-neutral-300 font-semibold mt-3">{APP_INFO.tagline}</p>
           </div>
 
@@ -44,7 +44,6 @@ export const AboutPage: React.FC = () => {
                     <div className="w-9 h-9 rounded-full bg-electric-500/20 border border-electric-500/40 flex items-center justify-center text-electric-400 text-sm font-bold">{dev.charAt(0)}</div>
                     <div className="text-left">
                       <h4 className="font-bold text-sm text-white">{dev}</h4>
-                      <span className="text-[11px] text-neutral-400">{t('profile.fullStackEngineer', lang)}</span>
                     </div>
                   </div>
                   <Award className="w-4 h-4 text-electric-400" />
