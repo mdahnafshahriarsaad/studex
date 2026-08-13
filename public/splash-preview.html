@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>STUDEX Splash Screen — 5 Animation Options</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #111; color: #fff; font-family: Inter, system-ui, sans-serif;
+    padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 30px;
+  }
+  h1 { text-align: center; font-size: 18px; color: #888; letter-spacing: 0.1em; margin-bottom: -10px; }
+  .grid {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;
+    max-width: 1100px; width: 100%;
+  }
+  .option {
+    width: 320px; height: 568px; border-radius: 24px; overflow: hidden;
+    position: relative; background: #000; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .option .label {
+    position: absolute; bottom: 0; left: 0; right: 0; text-align: center;
+    padding: 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.7); background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    z-index: 100; pointer-events: none; text-transform: uppercase;
+  }
+  .option .replay-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 100;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; border-radius: 20px; padding: 4px 14px; font-size: 11px;
+    cursor: pointer; backdrop-filter: blur(8px); letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+  .option .replay-btn:hover { background: rgba(255,255,255,0.2); }
+  .splash-inner {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; overflow: hidden;
+    position: relative;
+  }
+  .splash-inner img.logo { width: 140px; height: 140px; object-fit: contain; }
+  .splash-inner img.wordmark { height: 50px; object-fit: contain; }
+  .tagline {
+    font-size: 11px; letter-spacing: 0.35em; color: rgba(255,255,255,0.5);
+    font-weight: 700; text-transform: uppercase; margin-top: 12px;
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     OPTION 1 — ORBIT REVEAL
+     ════════════════════════════════════════════════════════════════════ */
+  .opt1 .glow {
+    position: absolute; width: 250px; height: 250px; border-radius: 50%;
+    background: rgba(0,240,255,0.12); filter: blur(60px);
+    animation: opt1-breathe 3s ease-in-out infinite;
+  }
+  @keyframes opt1-breathe { 0%,100%{opacity:.5;transform:scale(.9)} 50%{opacity:1;transform:scale(1.1)} }
+
+  .opt1 .ring {
+    position: absolute; width: 180px; height: 180px; border-radius: 50%;
+    border: 1.5px solid rgba(0,240,255,0.3);
+  }
+  .opt1 .ring1 { animation: opt1-orbit1 2.5s linear infinite; }
+  .opt1 .ring2 { animation: opt1-orbit2 3.5s linear infinite reverse; border-color: rgba(0,240,255,0.15); width: 210px; height: 210px; }
+  @keyframes opt1-orbit1 { 0%{transform:rotate(0deg) scale(1);opacity:.8} 50%{transform:rotate(180deg) scale(1.15);opacity:1} 100%{transform:rotate(360deg) scale(1);opacity:.8} }
+  @keyframes opt1-orbit2 { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+
+  .opt1 .ring-burst {
+    position: absolute; width: 180px; height: 180px; border-radius: 50%;
+    border: 2px solid rgba(0,240,255,0.4);
+    animation: opt1-burst 5s ease-out infinite;
+  }
+  @keyframes opt1-burst { 0%{transform:scale(.8);opacity:.8} 100%{transform:scale(2.2);opacity:0} }
+
+  .opt1 .logo-wrap {
+    animation: opt1-logoIn 1s cubic-bezier(.16,1,.3,1) forwards;
+    opacity: 0; filter: blur(8px);
+  }
+  @keyframes opt1-logoIn { to{opacity:1;filter:blur(0);transform:scale(1)} }
+  .opt1 .logo-wrap { transform: scale(0.85); }
+
+  .opt1 .wordmark-wrap {
+    animation: opt1-slideUp .7s cubic-bezier(.16,1,.3,1) 1.5s forwards;
+    opacity: 0; transform: translateY(20px);
+  }
+  @keyframes opt1-slideUp { to{opacity:1;transform:translateY(0)} }
+
+  .opt1 .tagline-wrap {
+    animation: opt1-fadeIn .6s ease 2.2s forwards;
+    opacity: 0;
+  }
+  @keyframes opt1-fadeIn { to{opacity:1} }
+
+  .opt1 .sweep {
+    position: absolute; width: 100%; height: 100%;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+    animation: opt1-sweep 5s ease-in-out 1.8s infinite;
+  }
+  @keyframes opt1-sweep { 0%{transform:translateX(-200%)} 40%,100%{transform:translateX(200%)} }
+
+  /* ════════════════════════════════════════════════════════════════════
+     OPTION 2 — LIQUID MORPH
+     ════════════════════════════════════════════════════════════════════ */
+  .opt2 .glass-card {
+    position: relative; padding: 32px; border-radius: 28px;
+    background: rgba(255,255,255,0.03); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: opt2-morph 4s ease-in-out infinite, opt2-cardIn 1s cubic-bezier(.16,1,.3,1) forwards;
+    opacity: 0; transform: scale(0.8);
+  }
+  @keyframes opt2-morph {
+    0%,100%{border-radius:28px;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 30px rgba(0,240,255,0.05)}
+    25%{border-radius:32px 24px 32px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 50px rgba(0,240,255,0.12)}
+    50%{border-radius:24px 32px 24px 32px;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 20px rgba(0,240,255,0.08)}
+    75%{border-radius:30px 26px 30px 26px;box-shadow:0 8px 32px rgba(0,0,0,0.6),0 0 40px rgba(0,240,255,0.1)}
+  }
+  @keyframes opt2-cardIn { to{opacity:1;transform:scale(1)} }
+
+  .opt2 .glow-behind {
+    position: absolute; width: 200px; height: 200px; border-radius: 50%;
+    background: rgba(0,240,255,0.08); filter: blur(50px);
+    animation: opt2-glow 3s ease-in-out infinite;
+  }
+  @keyframes opt2-glow { 0%,100%{opacity:.6;transform:scale(.9)} 50%{opacity:1;transform:scale(1.2)} }
+
+  .opt2 .logo-in-card {
+    animation: opt2-logoReveal .8s cubic-bezier(.16,1,.3,1) .5s forwards;
+    opacity: 0; filter: blur(6px); transform: scale(0.9);
+  }
+  @keyframes opt2-logoReveal { to{opacity:1;filter:blur(0);transform:scale(1)} }
+
+  .opt2 .light-sweep {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.08) 50%, transparent 65%);
+    border-radius: inherit; animation: opt2-sweep 4s ease-in-out 1.5s infinite;
+    pointer-events: none;
+  }
+  @keyframes opt2-sweep { 0%{transform:translateX(-250%)} 30%,100%{transform:translateX(250%)} }
+
+  .opt2 .reflection {
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  }
+
+  .opt2 .wordmark-wrap {
+    animation: opt2-wmIn .7s cubic-bezier(.16,1,.3,1) 1.4s forwards;
+    opacity: 0; transform: translateY(15px);
+  }
+  @keyframes opt2-wmIn { to{opacity:1;transform:translateY(0)} }
+
+  .opt2 .tagline-wrap {
+    animation: opt2-tagIn .6s ease 2s forwards; opacity: 0;
+  }
+  @keyframes opt2-tagIn { to{opacity:1} }
+
+  /* ════════════════════════════════════════════════════════════════════
+     OPTION 3 — PARTICLE ASSEMBLY
+     ════════════════════════════════════════════════════════════════════ */
+  .opt3 .particle {
+    position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: #00F0FF; box-shadow: 0 0 6px #00F0FF;
+  }
+
+  .opt3 .logo-wrap {
+    z-index: 10; animation: opt3-logoIn .6s cubic-bezier(.16,1,.3,1) 1.5s forwards;
+    opacity: 0; transform: scale(0.7); filter: blur(4px);
+  }
+  @keyframes opt3-logoIn { to{opacity:1;transform:scale(1);filter:blur(0)} }
+
+  .opt3 .spark-burst {
+    position: absolute; width: 160px; height: 160px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,240,255,0.3), transparent 70%);
+    animation: opt3-spark 5s ease-out 1.5s infinite;
+    z-index: 5;
+  }
+  @keyframes opt3-spark { 0%{transform:scale(0);opacity:1} 100%{transform:scale(3);opacity:0} }
+
+  .opt3 .wordmark-wrap {
+    z-index: 10; animation: opt3-wmIn .6s cubic-bezier(.16,1,.3,1) 2.2s forwards;
+    opacity: 0; transform: translateY(15px);
+  }
+  @keyframes opt3-wmIn { to{opacity:1;transform:translateY(0)} }
+
+  .opt3 .tagline-wrap { z-index:10; animation: opt3-tagIn .5s ease 2.8s forwards; opacity:0; }
+  @keyframes opt3-tagIn { to{opacity:1} }
+
+  /* ════════════════════════════════════════════════════════════════════
+     OPTION 4 — CINEMATIC FADE
+     ════════════════════════════════════════════════════════════════════ */
+  .opt4 .halo {
+    position: absolute; width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,240,255,0.1) 0%, transparent 70%);
+    animation: opt4-halo 4s ease-in-out infinite;
+  }
+  @keyframes opt4-halo { 0%,100%{opacity:.4;transform:scale(.9)} 50%{opacity:.8;transform:scale(1.1)} }
+
+  .opt4 .logo-wrap {
+    animation: opt4-slowIn 2.5s ease forwards;
+    opacity: 0; filter: blur(4px) brightness(0.5);
+  }
+  @keyframes opt4-slowIn { to{opacity:1;filter:blur(0) brightness(1)} }
+
+  .opt4 .wordmark-wrap {
+    animation: opt4-wmIn 2s ease 1.5s forwards;
+    opacity: 0;
+  }
+  @keyframes opt4-wmIn { to{opacity:1} }
+
+  .opt4 .tagline-wrap {
+    overflow: hidden; display: inline-block;
+    animation: opt4-tagIn .5s ease 3s forwards; opacity: 0;
+  }
+  @keyframes opt4-tagIn { to{opacity:1} }
+
+  .opt4 .tagline-inner {
+    display: inline-block; white-space: nowrap;
+    animation: opt4-typewriter 1.5s steps(20) 3.2s forwards;
+    overflow: hidden; width: 0;
+  }
+  @keyframes opt4-typewriter { to{width: 100%} }
+
+  .opt4 .vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+  }
+
+  /* ════════════════════════════════════════════════════════════════════
+     OPTION 5 — BOUNCE & GLOW
+     ════════════════════════════════════════════════════════════════════ */
+  .opt5 .logo-wrap {
+    animation: opt5-bounceIn .8s cubic-bezier(.34,1.56,.64,1) forwards;
+    opacity: 0; transform: translateY(-120px);
+  }
+  @keyframes opt5-bounceIn { 0%{opacity:0;transform:translateY(-120px)} 60%{opacity:1;transform:translateY(10px)} 80%{transform:translateY(-5px)} 100%{opacity:1;transform:translateY(0)} }
+
+  .opt5 .shockwave {
+    position: absolute; width: 140px; height: 140px; border-radius: 50%;
+    border: 2px solid rgba(0,240,255,0.5);
+    animation: opt5-shock 5s ease-out .6s infinite;
+  }
+  @keyframes opt5-shock { 0%{transform:scale(.8);opacity:.9} 100%{transform:scale(2.8);opacity:0} }
+
+  .opt5 .glow-pulse {
+    position: absolute; width: 180px; height: 180px; border-radius: 50%;
+    background: rgba(0,240,255,0.15); filter: blur(30px);
+    animation: opt5-glowPulse 5s ease-in-out .6s infinite;
+  }
+  @keyframes opt5-glowPulse { 0%{opacity:0;transform:scale(.5)} 15%{opacity:1;transform:scale(1.2)} 100%{opacity:0;transform:scale(1.5)} }
+
+  .opt5 .wordmark-wrap {
+    animation: opt5-wmBounce .7s cubic-bezier(.34,1.56,.64,1) 1.2s forwards;
+    opacity: 0; transform: translateY(40px);
+  }
+  @keyframes opt5-wmBounce { 0%{opacity:0;transform:translateY(40px)} 60%{opacity:1;transform:translateY(-8px)} 100%{opacity:1;transform:translateY(0)} }
+
+  .opt5 .tagline-wrap {
+    animation: opt5-tagSlide .5s ease 2s forwards; opacity: 0;
+    transform: translateX(30px);
+  }
+  @keyframes opt5-tagSlide { to{opacity:1;transform:translateX(0)} }
+
+  .opt5 .spark {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: #00F0FF;
+  }
+</style>
+</head>
+<body>
+<h1>STUDEX SPLASH SCREEN — CHOOSE YOUR ANIMATION</h1>
+<div class="grid">
+
+  <!-- ═══ OPTION 1: ORBIT REVEAL ═══ -->
+  <div class="option opt1" id="opt1">
+    <div class="label">1 — ORBIT REVEAL</div>
+    <button class="replay-btn" onclick="replay('opt1')">REPLAY</button>
+    <div class="splash-inner">
+      <div class="glow"></div>
+      <div class="ring ring1"></div>
+      <div class="ring ring2"></div>
+      <div class="ring-burst"></div>
+      <div class="logo-wrap">
+        <img class="logo" src="/logo-mark.png" />
+      </div>
+      <div class="sweep"></div>
+      <div class="wordmark-wrap" style="margin-top:24px">
+        <img class="wordmark" src="/wordmark.png" />
+      </div>
+      <div class="tagline-wrap">
+        <div class="tagline">ACADEMIC PLANNER</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OPTION 2: LIQUID MORPH ═══ -->
+  <div class="option opt2" id="opt2">
+    <div class="label">2 — LIQUID MORPH</div>
+    <button class="replay-btn" onclick="replay('opt2')">REPLAY</button>
+    <div class="splash-inner">
+      <div class="glow-behind"></div>
+      <div class="glass-card">
+        <div class="reflection"></div>
+        <div class="light-sweep"></div>
+        <div class="logo-in-card" style="display:flex;justify-content:center">
+          <img class="logo" src="/logo-mark.png" style="width:120px;height:120px" />
+        </div>
+      </div>
+      <div class="wordmark-wrap" style="margin-top:24px">
+        <img class="wordmark" src="/wordmark.png" />
+      </div>
+      <div class="tagline-wrap">
+        <div class="tagline">ACADEMIC PLANNER</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OPTION 3: PARTICLE ASSEMBLY ═══ -->
+  <div class="option opt3" id="opt3">
+    <div class="label">3 — PARTICLE ASSEMBLY</div>
+    <button class="replay-btn" onclick="replay('opt3')">REPLAY</button>
+    <div class="splash-inner">
+      <!-- particles injected by JS -->
+      <div class="spark-burst"></div>
+      <div class="logo-wrap">
+        <img class="logo" src="/logo-mark.png" style="filter:drop-shadow(0 0 30px rgba(0,240,255,0.6))" />
+      </div>
+      <div class="wordmark-wrap" style="margin-top:24px">
+        <img class="wordmark" src="/wordmark.png" />
+      </div>
+      <div class="tagline-wrap">
+        <div class="tagline">ACADEMIC PLANNER</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OPTION 4: CINEMATIC FADE ═══ -->
+  <div class="option opt4" id="opt4">
+    <div class="label">4 — CINEMATIC FADE</div>
+    <button class="replay-btn" onclick="replay('opt4')">REPLAY</button>
+    <div class="splash-inner">
+      <div class="halo"></div>
+      <div class="vignette"></div>
+      <div class="logo-wrap">
+        <img class="logo" src="/logo-mark.png" style="filter:drop-shadow(0 0 40px rgba(0,240,255,0.4))" />
+      </div>
+      <div class="wordmark-wrap" style="margin-top:28px">
+        <img class="wordmark" src="/wordmark.png" />
+      </div>
+      <div class="tagline-wrap">
+        <div class="tagline-inner tagline">ACADEMIC PLANNER</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ OPTION 5: BOUNCE & GLOW ═══ -->
+  <div class="option opt5" id="opt5">
+    <div class="label">5 — BOUNCE & GLOW</div>
+    <button class="replay-btn" onclick="replay('opt5')">REPLAY</button>
+    <div class="splash-inner">
+      <div class="shockwave"></div>
+      <div class="glow-pulse"></div>
+      <!-- sparks injected by JS -->
+      <div class="logo-wrap">
+        <img class="logo" src="/logo-mark.png" style="filter:drop-shadow(0 0 25px rgba(0,240,255,0.5))" />
+      </div>
+      <div class="wordmark-wrap" style="margin-top:24px">
+        <img class="wordmark" src="/wordmark.png" />
+      </div>
+      <div class="tagline-wrap">
+        <div class="tagline">ACADEMIC PLANNER</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Inject particles for Option 3 ────────────────────────────────
+function createParticles(containerId) {
+  const container = document.querySelector('#' + containerId + ' .splash-inner');
+  // Remove old particles
+  container.querySelectorAll('.particle').forEach(p => p.remove());
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = (Math.PI * 2 / 25) * i + Math.random() * 0.5;
+    const dist = 80 + Math.random() * 100;
+    const cx = 50, cy = 45;
+    const sx = cx + Math.cos(angle) * dist;
+    const sy = cy + Math.sin(angle) * dist;
+    const size = 1.5 + Math.random() * 2.5;
+    p.style.cssText = `
+      left:${sx}%;top:${sy}%;width:${size}px;height:${size}px;
+      animation: particle-fly-${i} ${1.5 + Math.random()}s cubic-bezier(.16,1,.3,1) ${Math.random() * 0.5}s forwards;
+      opacity:0;
+    `;
+    container.appendChild(p);
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes particle-fly-${i} {
+        0% { opacity:0; transform: translate(0,0) scale(0.5); }
+        30% { opacity:1; }
+        100% { opacity:0; transform: translate(${cx-sx}%,${cy-sy}%) scale(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// ─── Inject sparks for Option 5 ──────────────────────────────────
+function createSparks(containerId) {
+  const container = document.querySelector('#' + containerId + ' .splash-inner');
+  container.querySelectorAll('.spark').forEach(s => s.remove());
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const angle = (Math.PI * 2 / 12) * i;
+    const dist = 30 + Math.random() * 40;
+    s.style.cssText = `
+      left:50%;top:42%;
+      animation: spark-fly-${i} ${0.6 + Math.random() * 0.4}s ease-out ${0.5 + Math.random() * 0.2}s forwards;
+      opacity:0;
+    `;
+    container.appendChild(s);
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spark-fly-${i} {
+        0% { opacity:1; transform: translate(0,0) scale(1); }
+        100% { opacity:0; transform: translate(${dx}px,${dy}px) scale(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// ─── Replay function ─────────────────────────────────────────────
+function replay(id) {
+  const el = document.getElementById(id);
+  const clone = el.cloneNode(true);
+  el.parentNode.replaceChild(clone, el);
+  // Re-bind replay button
+  clone.querySelector('.replay-btn').addEventListener('click', () => replay(id));
+  if (id === 'opt3') setTimeout(() => createParticles(id), 100);
+  if (id === 'opt5') setTimeout(() => createSparks(id), 100);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────
+createParticles('opt3');
+createSparks('opt5');
+</script>
+</body>
+</html>

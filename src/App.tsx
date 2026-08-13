@@ -19,6 +19,7 @@ import { AboutPage } from './pages/AboutPage';
 import { FuturePlansPage } from './pages/FuturePlansPage';
 import { AuthModal } from './pages/AuthModal';
 import { CalendarPage } from './pages/CalendarPage';
+import { SplashPreviewPage } from './pages/SplashPreviewPage';
 
 // Synchronous: apply Bangla font class BEFORE React renders (prevents flash)
 if (typeof window !== 'undefined') {
@@ -34,8 +35,7 @@ if (typeof window !== 'undefined') {
   } catch (e) { /* ignore */ }
 }
 
-/** Public route: always accessible even without auth (guardian link) */
-const PUBLIC_PATHS = ['/guardian'];
+
 
 export const App: React.FC = () => {
   const {
@@ -155,10 +155,19 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
   showSplash, setShowSplash, inWelcomeFlow,
 }) => {
   const location = useLocation();
-  const isPublicPath = PUBLIC_PATHS.some((p) => location.pathname.startsWith(p));
+  const isPublicGuardian = location.pathname === '/guardian' && !profile.setupCompleted;
 
-  // If on a public path (guardian), render it regardless of auth state
-  if (isPublicPath) {
+  // Splash preview — always public
+  if (location.pathname === '/splash-preview') {
+    return (
+      <Routes>
+        <Route path="/splash-preview" element={<SplashPreviewPage />} />
+      </Routes>
+    );
+  }
+
+  // Public guardian access (share link with ?code=, user not logged in)
+  if (isPublicGuardian) {
     return (
       <Routes>
         <Route path="/guardian" element={<GuardianPage profile={profile} settings={settings} onUpdateProfile={updateProfile} />} />
@@ -210,6 +219,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="about" element={<AboutPage />} />
         <Route path="future-plans" element={<FuturePlansPage />} />
         <Route path="calendar" element={<CalendarPage />} />
+        <Route path="guardian" element={<GuardianPage profile={profile} settings={settings} onUpdateProfile={updateProfile} />} />
       </Route>
 
       <Route path="/focus" element={<FocusPage profile={profile} onUpdateProfile={updateProfile} onToggleChapterComplete={toggleChapterComplete} />} />
