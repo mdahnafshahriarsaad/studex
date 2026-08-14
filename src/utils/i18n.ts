@@ -411,6 +411,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.developers': 'Developers',
     'about.backToSettings': 'Back to Settings',
     'about.allRightsReserved': 'All Rights Reserved • Phase 1 Production Build',
+    'about.totalUsers': 'Total Users',
+    'about.joinedStudex': 'students have joined Studex',
+    'about.growingCommunity': 'Our community is growing every day.',
+    'about.loadingStats': 'Loading...',
 
     // Future Plans Page
     'nav.futurePlans': 'Future Plans',
@@ -1068,6 +1072,10 @@ export const translations: Record<Language, Record<string, string>> = {
     'about.developers': 'ডেভেলপার',
     'about.backToSettings': 'সেটিংসে ফিরুন',
     'about.allRightsReserved': 'সর্বস্বত্ব সংরক্ষিত • ফেজ ১ প্রোডাকশন বিল্ড',
+    'about.totalUsers': 'মোট ব্যবহারকারী',
+    'about.joinedStudex': 'জন শিক্ষার্থী স্টাডেক্সে যুক্ত হয়েছে',
+    'about.growingCommunity': 'আমাদের কমিউনিটি প্রতিদিন বড় হচ্ছে।',
+    'about.loadingStats': 'লোড হচ্ছে...',
 
     // Future Plans Page
     'nav.futurePlans': 'ভবিষ্যৎ পরিকল্পনা',

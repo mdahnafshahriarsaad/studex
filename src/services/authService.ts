@@ -89,6 +89,14 @@ export async function registerAccountAsync(
   saveUserProfile(customProfile);
   saveAppSettings(DEFAULT_APP_SETTINGS);
 
+  // 4b. Increment real user count in Firestore (best-effort, before sign-out)
+  try {
+    const { incrementUserCount } = await import('./statsService');
+    await incrementUserCount();
+  } catch {
+    /* never block signup */
+  }
+
   // 5. Sign out immediately — user must verify email before first login
   await signOut(auth);
 
