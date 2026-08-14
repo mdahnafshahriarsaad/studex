@@ -5,9 +5,9 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { APP_INFO } from '../utils/constants';
 import { t, getCurrentLanguage, formatNumber } from '../utils/i18n';
-import { Code, Award, ArrowLeft, Users, TrendingUp } from 'lucide-react';
+import { Code, Award, ArrowLeft, Users, Mail, UserX, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getUserCount } from '../services/statsService';
+import { getUserCounts } from '../services/statsService';
 
 // ── Animated counter hook ──────────────────────────────────────────
 function useAnimatedCount(target: number, duration: number = 2000) {
@@ -25,51 +25,72 @@ function useAnimatedCount(target: number, duration: number = 2000) {
   return display;
 }
 
-// ── Sparkle pulse for the number ───────────────────────────────────
-const SparkleRing: React.FC<{ active: boolean }> = ({ active }) => (
-  <motion.div
-    className="absolute inset-0 rounded-full"
-    initial={false}
-    animate={active ? {
-      boxShadow: [
-        '0 0 20px rgba(0,240,255,0.1), 0 0 60px rgba(0,240,255,0.05)',
-        '0 0 40px rgba(0,240,255,0.25), 0 0 100px rgba(0,240,255,0.1)',
-        '0 0 20px rgba(0,240,255,0.1), 0 0 60px rgba(0,240,255,0.05)',
-      ],
-    } : {}}
-    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-  />
-);
+// ── Stat card component ────────────────────────────────────────────
+const StatCard: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  accentColor: string;
+  delay: number;
+  lang: 'English' | 'Bengali';
+}> = ({ icon, label, count, accentColor, delay, lang }) => {
+  const display = useAnimatedCount(count, 1800 + delay * 400);
+  return (
+    <motion.div
+      className="flex-1 min-w-[140px] flex flex-col items-center gap-3 py-5 px-4 rounded-2xl border"
+      style={{
+        background: `linear-gradient(135deg, ${accentColor}10 0%, transparent 60%)`,
+        borderColor: `${accentColor}30`,
+      }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 + delay * 0.15, duration: 0.5 }}
+    >
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest" style={{ color: accentColor }}>
+        {icon}
+        <span>{label}</span>
+      </div>
+      <motion.span
+        className="text-4xl sm:text-5xl font-extrabold bg-clip-text text-transparent"
+        style={{ backgroundImage: `linear-gradient(to right, ${accentColor}, ${accentColor}99, ${accentColor})` }}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.4 + delay * 0.15 }}
+      >
+        {formatNumber(display, lang)}
+      </motion.span>
+    </motion.div>
+  );
+};
 
 export const AboutPage: React.FC = () => {
   const navigate = useNavigate();
   const lang = getCurrentLanguage();
-  const [realCount, setRealCount] = useState<number | null>(null);
+  const [counts, setCounts] = useState<{ emailSignups: number; guestSignups: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const hasFetched = useRef(false);
 
-  // Fetch real count from Firestore once
-  const fetchCount = useCallback(async () => {
+  const fetchCounts = useCallback(async () => {
     if (hasFetched.current) return;
     hasFetched.current = true;
     setLoading(true);
     try {
-      const count = await getUserCount();
-      setRealCount(count);
+      const data = await getUserCounts();
+      setCounts(data);
     } catch {
-      setRealCount(0);
+      setCounts({ emailSignups: 0, guestSignups: 0 });
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCount();
-  }, [fetchCount]);
+    fetchCounts();
+  }, [fetchCounts]);
 
-  // Animated counter
-  const displayCount = useAnimatedCount(realCount ?? 0, 2200);
-  const countReady = !loading && realCount !== null;
+  const total = (counts?.emailSignups ?? 0) + (counts?.guestSignups ?? 0);
+  const displayTotal = useAnimatedCount(total, 2400);
+  const countReady = !loading && counts !== null;
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto pb-12 select-none">
@@ -93,65 +114,74 @@ export const AboutPage: React.FC = () => {
 
           <div className="w-full h-[1px] bg-white/10 my-4" />
 
-          {/* ── Real User Count ── */}
+          {/* ── Real User Counts ── */}
           <motion.div
             className="w-full"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
           >
-              <div className="relative mx-auto w-fit">
-                <div className="relative flex flex-col items-center gap-3 py-6 px-10 rounded-2xl bg-gradient-to-br from-electric-500/10 via-transparent to-cyan-500/10 border border-electric-500/20">
-                  <SparkleRing active={countReady && (realCount ?? 0) > 0} />
-                  <div className="flex items-center gap-2 text-xs font-semibold text-electric-400 uppercase tracking-widest">
-                    <Users className="w-4 h-4" />
-                    <span>{t('about.totalUsers', lang)}</span>
-                  </div>
-
-                  {loading ? (
-                    <div className="flex items-center gap-2 text-neutral-500 text-sm">
-                      <motion.div
-                        className="w-4 h-4 border-2 border-electric-500/30 border-t-electric-400 rounded-full"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      />
-                      <span>{t('about.loadingStats', lang)}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-baseline gap-2">
-                      <motion.span
-                        key="count-value"
-                        className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-electric-400 via-cyan-300 to-electric-400 bg-clip-text text-transparent"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                      >
-                        {formatNumber(displayCount, lang)}
-                      </motion.span>
-                      <motion.span
-                        className="text-lg text-neutral-400 font-medium"
-                        initial={{ opacity: 0, x: -5 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 1.5, duration: 0.4 }}
-                      >
-                        {t('about.joinedStudex', lang)}
-                      </motion.span>
-                    </div>
-                  )}
-
-                  {countReady && (realCount ?? 0) > 0 && (
-                    <motion.div
-                      className="flex items-center gap-1.5 text-xs text-electric-400/60"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 2, duration: 0.5 }}
-                    >
-                      <TrendingUp className="w-3 h-3" />
-                      <span>{t('about.growingCommunity', lang)}</span>
-                    </motion.div>
-                  )}
-                </div>
+            {/* Total */}
+            <div className="flex flex-col items-center gap-2 mb-5">
+              <div className="flex items-center gap-2 text-xs font-semibold text-electric-400 uppercase tracking-widest">
+                <Users className="w-4 h-4" />
+                <span>{t('about.totalUsers', lang)}</span>
               </div>
+              {loading ? (
+                <div className="flex items-center gap-2 text-neutral-500 text-sm py-2">
+                  <motion.div
+                    className="w-4 h-4 border-2 border-electric-500/30 border-t-electric-400 rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  />
+                  <span>{t('about.loadingStats', lang)}</span>
+                </div>
+              ) : (
+                <motion.span
+                  className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-electric-400 via-cyan-300 to-electric-400 bg-clip-text text-transparent"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                >
+                  {formatNumber(displayTotal, lang)}
+                </motion.span>
+              )}
+              <span className="text-sm text-neutral-400">{t('about.joinedStudex', lang)}</span>
+            </div>
+
+            {/* Two stat cards */}
+            {!loading && (
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <StatCard
+                  icon={<Mail className="w-4 h-4" />}
+                  label={t('about.emailSignups', lang)}
+                  count={counts?.emailSignups ?? 0}
+                  accentColor="#00f0ff"
+                  delay={0}
+                  lang={lang}
+                />
+                <StatCard
+                  icon={<UserX className="w-4 h-4" />}
+                  label={t('about.guestSignups', lang)}
+                  count={counts?.guestSignups ?? 0}
+                  accentColor="#a78bfa"
+                  delay={1}
+                  lang={lang}
+                />
+              </div>
+            )}
+
+            {countReady && total > 0 && (
+              <motion.div
+                className="flex items-center justify-center gap-1.5 text-xs text-electric-400/60 mt-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2.2, duration: 0.5 }}
+              >
+                <TrendingUp className="w-3 h-3" />
+                <span>{t('about.growingCommunity', lang)}</span>
+              </motion.div>
+            )}
           </motion.div>
 
           <div className="w-full h-[1px] bg-white/10 my-2" />

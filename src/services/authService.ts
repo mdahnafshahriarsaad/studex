@@ -89,10 +89,10 @@ export async function registerAccountAsync(
   saveUserProfile(customProfile);
   saveAppSettings(DEFAULT_APP_SETTINGS);
 
-  // 4b. Increment real user count in Firestore (best-effort, before sign-out)
+  // 4b. Increment real email signup count in Firestore (best-effort, before sign-out)
   try {
-    const { incrementUserCount } = await import('./statsService');
-    await incrementUserCount();
+    const { incrementEmailSignupCount } = await import('./statsService');
+    await incrementEmailSignupCount();
   } catch {
     /* never block signup */
   }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useUserStore } from './hooks/useUserStore';
+import { auth } from './lib/firebase';
 import { SplashScreen } from './pages/SplashScreen';
 import { WelcomeScreen } from './pages/WelcomeScreen';
 import { SetupWizard } from './pages/SetupWizard';
@@ -73,6 +74,12 @@ export const App: React.FC = () => {
   const handleWizardComplete = (finalProfile: any) => {
     updateProfile(finalProfile);
     setInWelcomeFlow(false);
+    // Increment guest count if NOT logged in via Firebase Auth
+    if (!auth.currentUser) {
+      import('./services/statsService').then(({ incrementGuestSignupCount }) => {
+        incrementGuestSignupCount();
+      });
+    }
   };
 
   const handleReplaySplash = () => {
