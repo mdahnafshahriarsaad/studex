@@ -8,7 +8,6 @@ import { t, getCurrentLanguage, formatNumber } from '../utils/i18n';
 import { Code, Award, ArrowLeft, Users, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getUserCount } from '../services/statsService';
-import { isConfigured } from '../lib/firebase';
 
 // ── Animated counter hook ──────────────────────────────────────────
 function useAnimatedCount(target: number, duration: number = 2000) {
@@ -65,12 +64,7 @@ export const AboutPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isConfigured) {
-      fetchCount();
-    } else {
-      setLoading(false);
-      setRealCount(0);
-    }
+    fetchCount();
   }, [fetchCount]);
 
   // Animated counter
@@ -100,13 +94,12 @@ export const AboutPage: React.FC = () => {
           <div className="w-full h-[1px] bg-white/10 my-4" />
 
           {/* ── Real User Count ── */}
-          {isConfigured && (
-            <motion.div
-              className="w-full"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-            >
+          <motion.div
+            className="w-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
               <div className="relative mx-auto w-fit">
                 <div className="relative flex flex-col items-center gap-3 py-6 px-10 rounded-2xl bg-gradient-to-br from-electric-500/10 via-transparent to-cyan-500/10 border border-electric-500/20">
                   <SparkleRing active={countReady && (realCount ?? 0) > 0} />
@@ -159,10 +152,9 @@ export const AboutPage: React.FC = () => {
                   )}
                 </div>
               </div>
-            </motion.div>
-          )}
+          </motion.div>
 
-          {isConfigured && <div className="w-full h-[1px] bg-white/10 my-2" />}
+          <div className="w-full h-[1px] bg-white/10 my-2" />
 
           {/* Developers */}
           <div className="w-full space-y-4">
